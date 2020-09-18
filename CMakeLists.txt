@@ -23,10 +23,13 @@ endif()
 set(SOURCE_FILES main.cpp)
 add_executable(hybridDecoder ${SOURCE_FILES})
 
+find_package(Boost REQUIRED)
+include_directories(${Boost_INCLUDE_DIRS})
+
 include_directories(src)
-set(LIB_FILES src/djikstra.h src/djikstra.cpp)
-add_library(djikstra ${LIB_FILES})
-target_link_libraries(hybridDecoder djikstra)
+set(LIB_FILES src/djikstra.h src/djikstra.cpp src/hexLattice.h src/hexLattice.cpp)
+add_library(lattice ${LIB_FILES})
+target_link_libraries(hybridDecoder lattice)
 
 add_subdirectory(include/blossom5)
 target_link_libraries(hybridDecoder blossom5)
@@ -72,19 +75,20 @@ if (test)
     endif()
 
     # Add test executables
-    # add_executable(testTC test/test_toricCode.cpp)
+    add_executable(testHex test/test_hexLattice.cpp)
+    add_executable(testDjikstra test/test_djikstra.cpp)
     
-
     # Standard googletest linking
-    # target_link_libraries(testTC gtest gtest_main)
+    target_link_libraries(testHex gtest gtest_main)
+    target_link_libraries(testDjikstra gtest gtest_main)
 
     # Link to libraries
-    # target_link_libraries(testTC toricCode)
-    # target_link_libraries(testMWPM blossom5)
+    target_link_libraries(testHex lattice)
+    target_link_libraries(testDjikstra lattice)
 
     # Enable running tests with 'make test'
-    # add_test(NAME testTC COMMAND testTC)
-    # add_test(NAME testMWPM COMMAND testMWPM)
+    add_test(NAME testHex COMMAND testHex)
+    add_test(NAME testDjikstra COMMAND testDjikstra)
 endif()
 
 if (profile)

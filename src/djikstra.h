@@ -1,28 +1,24 @@
-// Program to find Dijkstra's shortest path using
-// priority_queue in STL
-#include<bits/stdc++.h>
-using namespace std;
-#define INF 0x3f3f3f3f
+#ifndef DJIKSTRA_H
+#define DJIKSTRA_H
 
-// iPair ==> Integer Pair
-typedef pair<int, int> iPair;
+#include "hexLattice.h"
 
-// This class represents a directed graph using
-// adjacency list representation
-class Graph
-{
-	int V; // No. of vertices
+#include <boost/config.hpp>
+#include <boost/graph/graph_traits.hpp>
+#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/dijkstra_shortest_paths.hpp>
+#include <boost/property_map/property_map.hpp>
 
-	// In a weighted graph, we need to store vertex
-	// and weight pair for every edge
-	list< pair<int, int> > *adj;
+typedef boost::adjacency_list< boost::listS, boost::vecS, boost::undirectedS, boost::no_property,
+        boost::property< boost::edge_weight_t, int > >
+        graph_t;
+typedef boost::graph_traits< graph_t >::vertex_descriptor vertex_descriptor;
+typedef std::pair< int, int > Edge;
+typedef boost::graph_traits<graph_t>::vertex_iterator vertex_iter;
+typedef boost::property_map<graph_t, boost::vertex_index_t>::type IndexMap;
 
-public:
-	Graph(int V); // Constructor
+graph_t buildGraph(const vpint &edgeToVertices, color c, int L);
 
-	// function to add an edge to graph
-	void addEdge(int u, int v, int w);
+void shortestPaths(const graph_t& g, std::map<vertex_descriptor, std::vector<vertex_descriptor>>& excitationToPaths, std::map<vertex_descriptor, vint>& excitationToDistances, const vint& excitations);
 
-    // returns shortest path from u to v
-    vector<int> shortestPath(int u, int v);
-};
+#endif
