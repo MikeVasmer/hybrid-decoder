@@ -26,12 +26,15 @@ add_executable(hybridDecoder ${SOURCE_FILES})
 find_package(Boost REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 
-include_directories(src)
-set(LIB_FILES src/djikstra.h src/djikstra.cpp src/hexLattice.h src/hexLattice.cpp)
-add_library(lattice ${LIB_FILES})
-target_link_libraries(hybridDecoder lattice)
-
 add_subdirectory(include/blossom5)
+
+include_directories(src)
+set(LIB_FILES src/djikstra.h src/djikstra.cpp src/hexLattice.h src/hexLattice.cpp src/decoder.h src/decoder.cpp)
+# set(LIB_FILES src/djikstra.h src/djikstra.cpp src/hexLattice.h src/hexLattice.cpp)
+add_library(lattice ${LIB_FILES})
+target_link_libraries(lattice blossom5)
+
+target_link_libraries(hybridDecoder lattice)
 target_link_libraries(hybridDecoder blossom5)
 
 if (test)
@@ -77,18 +80,22 @@ if (test)
     # Add test executables
     add_executable(testHex test/test_hexLattice.cpp)
     add_executable(testDjikstra test/test_djikstra.cpp)
+    add_executable(testDecoder test/test_decoder.cpp)
     
     # Standard googletest linking
     target_link_libraries(testHex gtest gtest_main)
     target_link_libraries(testDjikstra gtest gtest_main)
+    target_link_libraries(testDecoder gtest gtest_main)
 
     # Link to libraries
     target_link_libraries(testHex lattice)
     target_link_libraries(testDjikstra lattice)
+    target_link_libraries(testDecoder lattice)
 
     # Enable running tests with 'make test'
     add_test(NAME testHex COMMAND testHex)
     add_test(NAME testDjikstra COMMAND testDjikstra)
+    add_test(NAME testDecoder COMMAND testDecoder)
 endif()
 
 if (profile)
