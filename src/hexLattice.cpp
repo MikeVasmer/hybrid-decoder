@@ -212,11 +212,19 @@ void localUnencoding(vvint &vertexToEdgesLocal, vpint &edgeToVerticesLocal, vint
         neigh(v, x, 1, L),
         neigh(v, y, 1, L)
     };
+    // Z operators (not what we want as we consider Z errors)
+    // logicalOperatorMap = {
+    //     {{faceIndex(localVertexMap[0], x), faceIndex(localVertexMap[1], y)}, {0}},
+    //     {{faceIndex(v, x), faceIndex(v, y)}, {0, 1}},
+    //     {{faceIndex(localVertexMap[2], x), faceIndex(v, y)}, {3}},
+    //     {{faceIndex(localVertexMap[0], x), faceIndex(localVertexMap[0], y)}, {2, 3}}
+    // };
+    // X operators 
     logicalOperatorMap = {
-        {{faceIndex(localVertexMap[0], x), faceIndex(localVertexMap[1], y)}, {0}},
-        {{faceIndex(v, x), faceIndex(v, y)}, {0, 1}},
-        {{faceIndex(localVertexMap[2], x), faceIndex(v, y)}, {3}},
-        {{faceIndex(localVertexMap[0], x), faceIndex(localVertexMap[0], y)}, {2, 3}}
+        {{faceIndex(localVertexMap[0], x), faceIndex(localVertexMap[1], y)}, {2}},
+        {{faceIndex(v, x), faceIndex(v, y)}, {2, 3}},
+        {{faceIndex(localVertexMap[2], x), faceIndex(v, y)}, {1}},
+        {{faceIndex(localVertexMap[0], x), faceIndex(localVertexMap[0], y)}, {0, 1}}
     };
 }
 
@@ -319,7 +327,7 @@ void modifyLogicalOperators(vsint &logicals, const std::map<std::pair<int, int>,
 }
 
 // vertexToQubits should be a copy of vertexToFaces
-void unencode(std::map<std::pair<int, int>, int> &vertexPairToEdgeU, vsint &vertexToQubits, vpint &edgeToVertices, sint &unencodedVertices, sint &qubitIndices, vint &qubits, vsint& logicals, const vpint &edgeToFaces, vvint &vertexToEdges, int L, double p, std::mt19937& engine, std::uniform_real_distribution<double>& dist)
+void unencode(vsint &vertexToQubits, vpint &edgeToVertices, sint &unencodedVertices, sint &qubitIndices, vint &qubits, vsint& logicals, const vpint &edgeToFaces, vvint &vertexToEdges, int L, double p, std::mt19937& engine, std::uniform_real_distribution<double>& dist)
 {
     for (int i = 0; i < 2 * L * L; ++i) qubitIndices.insert(i);
     int e = 3 * L * L;
@@ -346,25 +354,6 @@ void unencode(std::map<std::pair<int, int>, int> &vertexPairToEdgeU, vsint &vert
             modifyVertexToQubits(vertexToQubits, vertexToEdgesL, localVertexMap, v, e, L);
             modifyEdgeToVertices(edgeToVertices, edgeToVerticesL, v, L, localVertexMap);
             modifyLogicalOperators(logicals, logicalOperatorMap, e);
-            // vertexPairToEdgeU
-            for (int i = 0; i < 4; ++i)
-            {
-                int v1 = localVertexMap[edgeToVerticesL[i].first];
-                int v2 = localVertexMap[edgeToVerticesL[i].second];
-                if (v1 < v2)
-                {
-                    vertexPairToEdgeU.insert({{v1, v2}, e + i});
-                }
-                else if (v2 < v1)
-                {
-                    vertexPairToEdgeU.insert({{v2, v1}, e + i});
-                }
-                else
-                {
-                    throw std::invalid_argument("v1 should not equal v2");
-                }
-                
-            }
             e += 4;
         }
     }

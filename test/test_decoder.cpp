@@ -65,12 +65,11 @@ TEST(calcSyndrome, expected_behaviour_full_unencoding)
     auto edgeToVertices = buildEdgeToVertices(L);
     auto vertexToEdges = buildVertexToEdges(L);
     auto logicals = buildLogicals(L);
-    std::map<std::pair<int, int>, int> vertexPairToEdgeU;
     sint unencodedVertices, qubitIndices;
     auto edgeToFaces = buildEdgeToFaces(L);
     vint qubits;
     double p = 1.0;
-    unencode(vertexPairToEdgeU, vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, p, engine, dist);
+    unencode(vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, p, engine, dist);
     // vint syndrome(L * L, 0);
     vint syndrome;
     // Errors on CC qubits should have no effect
@@ -345,12 +344,11 @@ TEST(buildLift, empty_lift_full_unencode)
     auto edgeToVertices = buildEdgeToVertices(L);
     auto vertexToEdges = buildVertexToEdges(L);
     auto logicals = buildLogicals(L);
-    std::map<std::pair<int, int>, int> vertexPairToEdgeU;
     sint unencodedVertices, qubitIndices;
     auto edgeToFaces = buildEdgeToFaces(L);
     vint qubits;
     double p = 1.0;
-    unencode(vertexPairToEdgeU, vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, p, engine, dist);
+    unencode(vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, p, engine, dist);
     auto faceToEdges = buildFaceToEdges(L);
     auto lift = buildLift(L, vertexToQubits, unencodedVertices, vertexToEdges, qubitIndices, faceToEdges);
     EXPECT_EQ(lift.size(), 0);
@@ -472,12 +470,11 @@ TEST(pairExcitations, fully_unencoded)
     auto edgeToVertices = buildEdgeToVertices(L);
     auto vertexToEdges = buildVertexToEdges(L);
     auto logicals = buildLogicals(L);
-    std::map<std::pair<int, int>, int> vertexPairToEdgeU;
     sint unencodedVertices, qubitIndices;
     auto edgeToFaces = buildEdgeToFaces(L);
     vint qubits;
     double p = 1.0;
-    unencode(vertexPairToEdgeU, vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, p, engine, dist);
+    unencode(vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, p, engine, dist);
     // b-b & g-g
     vint excitations = {25, 33, 14, 22};
     vint paths, redVertices;
@@ -536,12 +533,11 @@ TEST(findCorrection, full_unencode)
     auto edgeToVertices = buildEdgeToVertices(L);
     auto vertexToEdges = buildVertexToEdges(L);
     auto logicals = buildLogicals(L);
-    std::map<std::pair<int, int>, int> vertexPairToEdgeU;
     sint unencodedVertices, qubitIndices;
     auto edgeToFaces = buildEdgeToFaces(L);
     vint qubits;
     double p = 1.0;
-    unencode(vertexPairToEdgeU, vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, p, engine, dist);
+    unencode(vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, p, engine, dist);
     auto faceToEdges = buildFaceToEdges(L);
     auto lift = buildLift(L, vertexToQubits, unencodedVertices, vertexToEdges, qubitIndices, faceToEdges);
 
@@ -551,4 +547,129 @@ TEST(findCorrection, full_unencode)
     std::sort(outCorr.begin(), outCorr.end());
     vint expectedCorr = {131, 141};
     EXPECT_EQ(outCorr, expectedCorr);
+}
+
+TEST(checkCorrection, no_unencode)
+{
+    int L = 6;
+    auto logicals = buildLogicals(L);
+    vint qubits(2 * L * L, 0);
+    // Stabilizer error
+    // Stab with index 15
+    qubits[30] = 1;
+    qubits[31] = 1;
+    qubits[16] = 1;
+    qubits[17] = 1;
+    qubits[19] = 1;
+    qubits[28] = 1;
+    EXPECT_TRUE(checkCommutation(qubits, logicals));
+    // L1 g 
+    vint indices = {0, 1, 22, 23, 32, 33, 42, 43, 52, 54, 62, 63};
+    for (auto i : indices)
+    {
+        qubits[i] = (qubits[i] + 1) % 2;
+    }
+    EXPECT_FALSE(checkCommutation(qubits, logicals));
+    // L1 b
+    indices = {2, 3, 12, 13, 34, 35, 44, 45, 54, 55, 64, 65};
+    for (auto i : indices)
+    {
+        qubits[i] = (qubits[i] + 1) % 2;
+    }
+    EXPECT_FALSE(checkCommutation(qubits, logicals));
+    // L2 g
+    indices = {2, 5, 18, 21, 34, 35, 38, 41, 54, 57, 70, 61};
+    for (auto i : indices)
+    {
+        qubits[i] = (qubits[i] + 1) % 2;
+    }
+    EXPECT_FALSE(checkCommutation(qubits, logicals));
+    // L2 b
+    indices = {1, 14, 17, 30, 33, 46, 37, 50, 53, 66, 69};
+    for (auto i : indices)
+    {
+        qubits[i] = (qubits[i] + 1) % 2;
+    }
+    EXPECT_FALSE(checkCommutation(qubits, logicals));
+    // L red diagonal
+    std::fill(qubits.begin(), qubits.end(), 0);
+    indices = {10, 11, 20, 21, 30, 31, 40, 41, 50, 51, 60, 61};
+    for (auto i : indices)
+    {
+        qubits[i] = (qubits[i] + 1) % 2;
+    }
+    EXPECT_FALSE(checkCommutation(qubits, logicals));
+}
+
+TEST(checkCorrection, full_unencode)
+{
+    int L = 6;
+    auto vertexToQubits = buildVertexToFaces(L);
+    auto edgeToVertices = buildEdgeToVertices(L);
+    auto vertexToEdges = buildVertexToEdges(L);
+    auto logicals = buildLogicals(L);
+    sint unencodedVertices, qubitIndices;
+    auto edgeToFaces = buildEdgeToFaces(L);
+    vint qubits;
+    double p = 1.0;
+    unencode(vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, p, engine, dist);
+    // Stabilizer error b
+    int offset = 3 * L * L;
+    qubits[offset + 30] = 1;
+    qubits[offset + 31] = 1;
+    qubits[offset + 11] = 1;
+    qubits[offset + 18] = 1;
+    EXPECT_TRUE(checkCommutation(qubits, logicals));
+    // Stabilizer error g
+    qubits[offset + 17] = 1;
+    qubits[offset + 16] = 1;
+    qubits[offset + 32] = 1;
+    qubits[offset + 29] = 1;
+    EXPECT_TRUE(checkCommutation(qubits, logicals));
+    // L1 b
+    vint indices = {35, 6, 15, 26};
+    for (auto i : indices)
+    {
+        qubits[offset + i] = (qubits[offset + i] + 1) % 2;
+    }
+    EXPECT_FALSE(checkCommutation(qubits, logicals));
+    // L2 b
+    indices = {2, 18, 34, 6, 22, 38};
+    for (auto i : indices)
+    {
+        qubits[offset + i] = (qubits[offset + i] + 1) % 2;
+    }
+    EXPECT_FALSE(checkCommutation(qubits, logicals));
+    // L1 g
+    indices = {9, 28, 37, 0};
+    for (auto i : indices)
+    {
+        qubits[offset + i] = (qubits[offset + i] + 1) % 2;
+    }
+    EXPECT_FALSE(checkCommutation(qubits, logicals));
+    // L2 g
+    indices = {16, 28, 36, 40, 4, 12};
+    for (auto i : indices)
+    {
+        qubits[offset + i] = (qubits[offset + i] + 1) % 2;
+    }
+    EXPECT_FALSE(checkCommutation(qubits, logicals));
+}
+
+TEST(buildLift, L18_problem)
+{
+    int L = 18;
+    auto vertexToQubits = buildVertexToFaces(L);
+    sint unencodedVertices;
+    auto vertexToEdges = buildVertexToEdges(L);
+    sint qubitIndices;
+    for (int i = 0; i < 2 * L * L; ++i) qubitIndices.insert(i);
+    auto faceToEdges = buildFaceToEdges(L);
+    auto lift = buildLift(L, vertexToQubits, unencodedVertices, vertexToEdges, qubitIndices, faceToEdges);
+
+    vint problemEdges = {41, 97};
+    EXPECT_NO_THROW(auto qs = lift.at(problemEdges));
+    auto qs = lift.at(problemEdges);
+    vint expectedQs = {27, 62};
+    EXPECT_EQ(qs, expectedQs);
 }

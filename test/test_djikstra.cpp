@@ -71,12 +71,11 @@ TEST(buildGraph, full_unencoding)
         auto edgeToVertices = buildEdgeToVertices(L);
         auto vertexToEdges = buildVertexToEdges(L);
         auto logicals = buildLogicals(L);
-        std::map<std::pair<int, int>, int> vertexPairToEdgeU;
         sint unencodedVertices, qubitIndices;
         auto edgeToFaces = buildEdgeToFaces(L);
         vint qubits;
         double p = 1.0;
-        unencode(vertexPairToEdgeU, vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, p, engine, dist);
+        unencode(vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, p, engine, dist);
         for (auto c : colors)
         {
             auto g = buildGraph(edgeToVertices, c, L);
@@ -165,12 +164,11 @@ TEST(shortestPaths, full_unencoding)
     std::uniform_real_distribution<double> dist{0.0, 1.0};
     auto vertexToQubits = buildVertexToFaces(L);
     auto logicals = buildLogicals(L);
-    std::map<std::pair<int, int>, int> vertexPairToEdgeU;
     sint unencodedVertices, qubitIndices;
     auto edgeToFaces = buildEdgeToFaces(L);
     vint qubits;
     double p = 1.0;
-    unencode(vertexPairToEdgeU, vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, p, engine, dist);
+    unencode(vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, p, engine, dist);
     auto g = buildGraph(edgeToVertices, c, L);
     std::map<vertex_descriptor, std::vector<vertex_descriptor>> excitationToPaths;
     std::map<vertex_descriptor, vint> excitationToDistances;

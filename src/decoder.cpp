@@ -136,26 +136,21 @@ std::map<vint, vint> buildLift(int L, const vsint &vertexToQubits, const sint &u
             vint error;
             for (auto i : ic) error.push_back(qs[i]);
             // Find boundary of the error
-            vint boundary;
+            sint boundary;
             for (auto f : error)
             {
-                boundary.insert(boundary.end(), faceToEdges[f].begin(), faceToEdges[f].end());
-            }
-            std::sort(boundary.begin(), boundary.end());
-            vint boundaryR; // restricted to v
-            for (int i = 0; i < boundary.size(); ++i)
-            {
-                if (std::find(edges.begin(), edges.end(), boundary[i]) != edges.end())
+                for (auto e : faceToEdges[f])
                 {
-                    if (boundary[i + 1] == boundary[i]) 
-                    {
-                        // Edge is not in boundary mod 2 so skip over it 
-                        ++i;
-                    }
-                    else
-                    {
-                        boundaryR.push_back(boundary[i]);
-                    }
+                    if (boundary.find(e) == boundary.end()) boundary.insert(e);
+                    else boundary.erase(e);
+                }
+            }
+            vint boundaryR; // restricted to v
+            for (auto e : boundary)
+            {
+                if (std::find(edges.begin(), edges.end(), e) != edges.end())
+                {
+                    boundaryR.push_back(e);
                 }
             }
             // We only add if the boundary is not there already, as we don't care about errors that are the same up to stabilizers
@@ -184,7 +179,7 @@ vint localLift(int v, int L, const vint &paths, const vvint &vertexToEdges, cons
     return lift.at(localEdges);
 }
 
-void generateError(vint &qubits, sint &qubitIndices, double p, std::mt19937 &engine, std::uniform_real_distribution<double> &dist)
+void generateError(vint &qubits, const sint &qubitIndices, double p, std::mt19937 &engine, std::uniform_real_distribution<double> &dist)
 {
     std::fill(qubits.begin(), qubits.end(), 0);
     for (auto const q : qubitIndices)
@@ -221,4 +216,18 @@ vint findCorrection(const vint &excitations, const vpint &edgeToVertices, const 
         for (auto corr : localCorr) correction.push_back(corr);
     }
     return correction;
+}
+
+bool checkCommutation(vint &qubits, vsint &logicals)
+{
+    for (auto &logical : logicals)
+    {
+        int parity = 0;
+        for (auto q : logical)
+        {
+            if (qubits[q] == 1) ++parity;
+        }
+        if (parity % 2 == 1) return false;
+    }
+    return true;
 }

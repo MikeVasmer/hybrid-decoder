@@ -62,7 +62,7 @@ void modifyLogicalOperators(vsint &logicals, const std::map<std::pair<int, int>,
 
 void removeRedundantEdges(vpint &edgeToVertices, const sint &qubitIndices, const vpint &edgeToFaces, int L);
 
-void unencode(std::map<std::pair<int, int>, int> &vertexPairToEdgeU, vsint &vertexToQubits, vpint &edgeToVertices, sint &unencodedVertices, sint &qubitIndices, vint &qubits, vsint& logicals, const vpint &edgeToFaces, vvint &vertexToEdges, int L, double p, std::mt19937& engine, std::uniform_real_distribution<double>& dist);
+void unencode(vsint &vertexToQubits, vpint &edgeToVertices, sint &unencodedVertices, sint &qubitIndices, vint &qubits, vsint& logicals, const vpint &edgeToFaces, vvint &vertexToEdges, int L, double p, std::mt19937& engine, std::uniform_real_distribution<double>& dist);
 
 int pairToEdge(int v, int u, const vvint &vertexToEdges, const vpint &edgeToVertices);
 

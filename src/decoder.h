@@ -7,7 +7,7 @@
 
 void calcSyndrome(vint &syndrome, const vsint &vertexToQubits, const vint &qubits, const sint &undencodedVertices, int L);
 
-void generateError(vint &qubits, sint &qubitIndices, double p, std::mt19937 &engine, std::uniform_real_distribution<double> &dist);
+void generateError(vint &qubits, const sint &qubitIndices, double p, std::mt19937 &engine, std::uniform_real_distribution<double> &dist);
 
 vvint combinationsUpToK(int n, int k);
 
@@ -20,5 +20,7 @@ vint localLift(int v, int L, const vint &paths, const vvint &vertexToEdges, cons
 void pairExcitations(const vint &excitations, const vpint &edgeToVertices, const vvint &vertexToEdges, color c, int L, vint &paths, vint &redVertices);
 
 vint findCorrection(const vint &excitations, const vpint &edgeToVertices, const vvint &vertexToEdges, int L, const std::map<vint, vint> &lift);
+
+bool checkCommutation(vint &qubits, vsint &logicals);
 
 #endif
