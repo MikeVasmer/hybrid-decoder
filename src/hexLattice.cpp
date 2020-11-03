@@ -198,12 +198,8 @@ vsint buildLogicals(int L)
     return logicals;
 }
 
-void localUnencoding(vvint &vertexToEdgesLocal, vpint &edgeToVerticesLocal, vint &localVertexMap, std::map<std::pair<int, int>, std::vector<int>> &logicalOperatorMap, int v, int L)
+void localUnencoding(vvint &vertexToEdgesLocal, vpint &edgeToVerticesLocal, vint &localVertexMap, std::map<std::pair<int, int>, std::vector<int>> &logicalOperatorMap, int v, int L, std::mt19937 &engine, bool random)
 {
-    // ToDo: Randomize the unencoding
-    // Make below two are sorted
-    vertexToEdgesLocal = {{0, 1}, {2}, {3}, {2, 3}, {0}, {1}};
-    edgeToVerticesLocal = {{0, 4}, {0, 5}, {1, 3}, {2, 3}};
     localVertexMap = {
         neigh(v, xy, -1, L), 
         neigh(v, y, -1, L), 
@@ -212,20 +208,119 @@ void localUnencoding(vvint &vertexToEdgesLocal, vpint &edgeToVerticesLocal, vint
         neigh(v, x, 1, L),
         neigh(v, y, 1, L)
     };
-    // Z operators (not what we want as we consider Z errors)
-    // logicalOperatorMap = {
-    //     {{faceIndex(localVertexMap[0], x), faceIndex(localVertexMap[1], y)}, {0}},
-    //     {{faceIndex(v, x), faceIndex(v, y)}, {0, 1}},
-    //     {{faceIndex(localVertexMap[2], x), faceIndex(v, y)}, {3}},
-    //     {{faceIndex(localVertexMap[0], x), faceIndex(localVertexMap[0], y)}, {2, 3}}
-    // };
-    // X operators 
-    logicalOperatorMap = {
-        {{faceIndex(localVertexMap[0], x), faceIndex(localVertexMap[1], y)}, {2}},
-        {{faceIndex(v, x), faceIndex(v, y)}, {2, 3}},
-        {{faceIndex(localVertexMap[2], x), faceIndex(v, y)}, {1}},
-        {{faceIndex(localVertexMap[0], x), faceIndex(localVertexMap[0], y)}, {0, 1}}
-    };
+    std::uniform_int_distribution<> dice9(1, 9);
+    int choice;
+    if (random) choice = dice9(engine);
+    else choice = 1;
+    switch (choice) {
+        case 1:
+            // 0 3 (Numbers refer to local vertices in two new edges)
+            vertexToEdgesLocal = {{0, 1}, {2}, {3}, {2, 3}, {0}, {1}};
+            edgeToVerticesLocal = {{0, 4}, {0, 5}, {1, 3}, {2, 3}};
+            // Z operators (not what we want as we consider Z errors)
+            // logicalOperatorMap = {
+            //     {{faceIndex(localVertexMap[0], x), faceIndex(localVertexMap[1], y)}, {0}},
+            //     {{faceIndex(v, x), faceIndex(v, y)}, {0, 1}},
+            //     {{faceIndex(localVertexMap[2], x), faceIndex(v, y)}, {3}},
+            //     {{faceIndex(localVertexMap[0], x), faceIndex(localVertexMap[0], y)}, {2, 3}}
+            // };
+            // X operators 
+            logicalOperatorMap = {
+                {{faceIndex(localVertexMap[0], x), faceIndex(localVertexMap[1], y)}, {2}},
+                {{faceIndex(v, x), faceIndex(v, y)}, {2, 3}},
+                {{faceIndex(localVertexMap[2], x), faceIndex(v, y)}, {1}},
+                {{faceIndex(localVertexMap[0], x), faceIndex(localVertexMap[0], y)}, {0, 1}}
+            };
+            break;
+        case 2:
+            // 0 1
+            vertexToEdgesLocal = {{0, 1}, {2, 3}, {2}, {3}, {0}, {1}};
+            edgeToVerticesLocal = {{0, 4}, {0, 5}, {1, 2}, {1, 3}};
+            logicalOperatorMap = {
+                {{faceIndex(localVertexMap[0], x), faceIndex(localVertexMap[1], y)}, {2, 3}},
+                {{faceIndex(v, x), faceIndex(v, y)}, {3}},
+                {{faceIndex(localVertexMap[2], x), faceIndex(v, y)}, {1}},
+                {{faceIndex(localVertexMap[0], x), faceIndex(localVertexMap[0], y)}, {0, 1}}
+            };
+            break;
+        case 3:
+            // 0 2
+            vertexToEdgesLocal = {{0, 1}, {2}, {2, 3}, {3}, {0}, {1}};
+            edgeToVerticesLocal = {{0, 4}, {0, 5}, {1, 2}, {2, 3}};
+            logicalOperatorMap = {
+                {{faceIndex(localVertexMap[0], x), faceIndex(localVertexMap[1], y)}, {2}},
+                {{faceIndex(v, x), faceIndex(v, y)}, {3}},
+                {{faceIndex(localVertexMap[2], x), faceIndex(v, y)}, {1}},
+                {{faceIndex(localVertexMap[0], x), faceIndex(localVertexMap[0], y)}, {0, 1}}
+            };
+            break;
+        case 4:
+            // 4 3
+            vertexToEdgesLocal = {{0}, {2}, {3}, {2, 3}, {0, 1}, {1}};
+            edgeToVerticesLocal = {{0, 4}, {4, 5}, {1, 3}, {2, 3}};
+            logicalOperatorMap = {
+                {{faceIndex(localVertexMap[0], x), faceIndex(localVertexMap[1], y)}, {2}},
+                {{faceIndex(v, x), faceIndex(v, y)}, {2, 3}},
+                {{faceIndex(localVertexMap[2], x), faceIndex(v, y)}, {1}},
+                {{faceIndex(localVertexMap[0], x), faceIndex(localVertexMap[0], y)}, {0}}
+            };
+            break;
+        case 5:
+            // 4 1
+            vertexToEdgesLocal = {{0}, {2, 3}, {2}, {3}, {0, 1}, {1}};
+            edgeToVerticesLocal = {{0, 4}, {4, 5}, {1, 2}, {1, 3}};
+            logicalOperatorMap = {
+                {{faceIndex(localVertexMap[0], x), faceIndex(localVertexMap[1], y)}, {2, 3}},
+                {{faceIndex(v, x), faceIndex(v, y)}, {3}},
+                {{faceIndex(localVertexMap[2], x), faceIndex(v, y)}, {1}},
+                {{faceIndex(localVertexMap[0], x), faceIndex(localVertexMap[0], y)}, {0}}
+            };
+            break;
+        case 6:
+            // 4 2
+            vertexToEdgesLocal = {{0}, {2}, {2, 3}, {3}, {0, 1}, {1}};
+            edgeToVerticesLocal = {{0, 4}, {4, 5}, {1, 2}, {2, 3}};
+            logicalOperatorMap = {
+                {{faceIndex(localVertexMap[0], x), faceIndex(localVertexMap[1], y)}, {2}},
+                {{faceIndex(v, x), faceIndex(v, y)}, {3}},
+                {{faceIndex(localVertexMap[2], x), faceIndex(v, y)}, {1}},
+                {{faceIndex(localVertexMap[0], x), faceIndex(localVertexMap[0], y)}, {0}}
+            };
+            break;
+        case 7:
+            // 5 3
+            vertexToEdgesLocal = {{0}, {2}, {3}, {2, 3}, {1}, {0, 1}};
+            edgeToVerticesLocal = {{0, 5}, {4, 5}, {1, 3}, {2, 3}};
+            logicalOperatorMap = {
+                {{faceIndex(localVertexMap[0], x), faceIndex(localVertexMap[1], y)}, {2}},
+                {{faceIndex(v, x), faceIndex(v, y)}, {2, 3}},
+                {{faceIndex(localVertexMap[2], x), faceIndex(v, y)}, {0, 1}},
+                {{faceIndex(localVertexMap[0], x), faceIndex(localVertexMap[0], y)}, {0}}
+            };
+            break;
+        case 8:
+            // 5 1 
+            vertexToEdgesLocal = {{0}, {2, 3}, {2}, {3}, {1}, {0, 1}};
+            edgeToVerticesLocal = {{0, 5}, {4, 5}, {1, 2}, {1, 3}};
+            logicalOperatorMap = {
+                {{faceIndex(localVertexMap[0], x), faceIndex(localVertexMap[1], y)}, {2, 3}},
+                {{faceIndex(v, x), faceIndex(v, y)}, {3}},
+                {{faceIndex(localVertexMap[2], x), faceIndex(v, y)}, {0, 1}},
+                {{faceIndex(localVertexMap[0], x), faceIndex(localVertexMap[0], y)}, {0}}
+            };
+            break;
+        case 9:
+            // 5 2
+            vertexToEdgesLocal = {{0}, {2}, {2, 3}, {3}, {1}, {0, 1}};
+            edgeToVerticesLocal = {{0, 5}, {4, 5}, {1, 2}, {2, 3}};
+            logicalOperatorMap = {
+                {{faceIndex(localVertexMap[0], x), faceIndex(localVertexMap[1], y)}, {2}},
+                {{faceIndex(v, x), faceIndex(v, y)}, {3}},
+                {{faceIndex(localVertexMap[2], x), faceIndex(v, y)}, {0, 1}},
+                {{faceIndex(localVertexMap[0], x), faceIndex(localVertexMap[0], y)}, {0}}
+            };
+            break;
+    }
 }
 
 void modifyVertexToQubits(vsint &vertexToQubits, const vvint &vertexToEdgesL, const vint &localVertexMap, int v, int e, int L)
@@ -327,7 +422,7 @@ void modifyLogicalOperators(vsint &logicals, const std::map<std::pair<int, int>,
 }
 
 // vertexToQubits should be a copy of vertexToFaces
-void unencode(vsint &vertexToQubits, vpint &edgeToVertices, sint &unencodedVertices, sint &qubitIndices, vint &qubits, vsint& logicals, const vpint &edgeToFaces, vvint &vertexToEdges, int L, double p, std::mt19937& engine, std::uniform_real_distribution<double>& dist)
+void unencode(vsint &vertexToQubits, vpint &edgeToVertices, sint &unencodedVertices, sint &qubitIndices, vint &qubits, vsint& logicals, const vpint &edgeToFaces, vvint &vertexToEdges, int L, double p, std::mt19937& engine, std::uniform_real_distribution<double>& dist, bool randomU)
 {
     for (int i = 0; i < 2 * L * L; ++i) qubitIndices.insert(i);
     int e = 3 * L * L;
@@ -349,7 +444,7 @@ void unencode(vsint &vertexToQubits, vpint &edgeToVertices, sint &unencodedVerti
             vpint edgeToVerticesL;
             vint localVertexMap;
             std::map<std::pair<int, int>, std::vector<int>> logicalOperatorMap;
-            localUnencoding(vertexToEdgesL, edgeToVerticesL, localVertexMap, logicalOperatorMap, v, L);
+            localUnencoding(vertexToEdgesL, edgeToVerticesL, localVertexMap, logicalOperatorMap, v, L, engine, randomU);
             // Modify data structures to account for unencoding
             modifyVertexToQubits(vertexToQubits, vertexToEdgesL, localVertexMap, v, e, L);
             modifyEdgeToVertices(edgeToVertices, edgeToVerticesL, v, L, localVertexMap);

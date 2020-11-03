@@ -55,8 +55,11 @@ int main(int argc, char* argv[])
     int L = atoi(argv[1]);
     double unencodingP = atof(argv[2]);
     double errorP = atof(argv[3]);
-    int trials = atoi(argv[4]);
-    int job = atoi(argv[5]);
+    bool randomizeUnencoding;
+    std::stringstream ss(argv[4]);
+    if (!(ss >> std::boolalpha >> randomizeUnencoding)) throw std::invalid_argument("Problem with randomizeUnencoding.");
+    int trials = atoi(argv[5]);
+    int job = atoi(argv[6]);
 
     // Parameter checks
     if (L % 3 != 0 || L <= 0) throw std::invalid_argument("L must be a positive multiple of three.");
@@ -81,7 +84,7 @@ int main(int argc, char* argv[])
     // Unencode
     sint unencodedVertices, qubitIndices;
     vint qubits;
-    unencode(vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, unencodingP, engine, dist);
+    unencode(vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, unencodingP, engine, dist, randomizeUnencoding);
     // Build Lift
     auto faceToEdges = buildFaceToEdges(L);
     auto lift = buildLift(L, vertexToQubits, unencodedVertices, vertexToEdges, qubitIndices, faceToEdges);
@@ -124,10 +127,11 @@ int main(int argc, char* argv[])
         + "lat=" + std::to_string(rand) + ".csv";
     std::ofstream file(path);
     // L, error p, unencoding p, trials, fails, job
-    file << "L,uP,eP,trials,fails,runtime(s),job" << std::endl;
+    file << "L,uP,eP,randomU,trials,fails,runtime(s),job" << std::endl;
     file << std::to_string(L) << ","
         << std::to_string(unencodingP) << ","
         << std::to_string(errorP) << ","
+        << std::to_string(randomizeUnencoding) << ","
         << std::to_string(t) << ","
         << std::to_string(fails) << ","
         << std::to_string(duration.count()) << ","

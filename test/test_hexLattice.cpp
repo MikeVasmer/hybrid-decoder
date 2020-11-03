@@ -199,7 +199,8 @@ TEST(modifyVertexToQubits, correct_output_L6)
     vint localVertexMap;
     vpint edgeToVerticesL;
     std::map<std::pair<int, int>, std::vector<int>> logicalOperatorMap;
-    localUnencoding(vertexToEdgesL, edgeToVerticesL, localVertexMap, logicalOperatorMap, v, L);
+    std::mt19937 engine;
+    localUnencoding(vertexToEdgesL, edgeToVerticesL, localVertexMap, logicalOperatorMap, v, L, engine, false);
     modifyVertexToQubits(vertexToQubits, vertexToEdgesL, localVertexMap, v, e, L);
     sint expectedQ = {e, e + 1, e + 2, e + 3};
     EXPECT_EQ(vertexToQubits[v], expectedQ);
@@ -232,7 +233,8 @@ TEST(modifyVertexToQubits, full_unencode)
             vint localVertexMap;
             vpint edgeToVerticesL;
             std::map<std::pair<int, int>, std::vector<int>> logicalOperatorMap;
-            localUnencoding(vertexToEdgesL, edgeToVerticesL, localVertexMap, logicalOperatorMap, v, L);
+            std::mt19937 engine;
+            localUnencoding(vertexToEdgesL, edgeToVerticesL, localVertexMap, logicalOperatorMap, v, L, engine, false);
             modifyVertexToQubits(vertexToQubits, vertexToEdgesL, localVertexMap, v, e, L);
             e += 4;
         }
@@ -254,7 +256,8 @@ TEST(modifyEdgeToVertices, correct_L6)
     vint localVertexMap;
     vpint edgeToVerticesL;
     std::map<std::pair<int, int>, std::vector<int>> logicalOperatorMap;
-    localUnencoding(vertexToEdgesL, edgeToVerticesL, localVertexMap, logicalOperatorMap, v, L);
+    std::mt19937 engine;
+    localUnencoding(vertexToEdgesL, edgeToVerticesL, localVertexMap, logicalOperatorMap, v, L, engine, false);
     modifyEdgeToVertices(edgeToVertices, edgeToVerticesL, v, L, localVertexMap);
     std::pair<int, int> expected{1, 35};
     EXPECT_EQ(edgeToVertices[e], expected);
@@ -274,7 +277,7 @@ TEST(modifyEdgeToVertices, correct_L6)
     e += 4;
     // Unencode (1, 5)
     v = 31;
-    localUnencoding(vertexToEdgesL, edgeToVerticesL, localVertexMap, logicalOperatorMap, v, L);
+    localUnencoding(vertexToEdgesL, edgeToVerticesL, localVertexMap, logicalOperatorMap, v, L, engine, false);
     modifyEdgeToVertices(edgeToVertices, edgeToVerticesL, v, L, localVertexMap);
     expected = {24, 32};
     EXPECT_EQ(edgeToVertices[e], expected);
@@ -335,12 +338,13 @@ TEST(modifyLogicalOperators, correct_L6)
     vint localVertexMap;
     vpint edgeToVerticesL;
     std::map<std::pair<int, int>, std::vector<int>> logicalOperatorMap;
-    localUnencoding(vertexToEdgesL, edgeToVerticesL, localVertexMap, logicalOperatorMap, v, L);
+    std::mt19937 engine;
+    localUnencoding(vertexToEdgesL, edgeToVerticesL, localVertexMap, logicalOperatorMap, v, L, engine, false);
     modifyLogicalOperators(logicals, logicalOperatorMap, e);
     e += 4;
     // Unencode (1, 5)
     v = 31;
-    localUnencoding(vertexToEdgesL, edgeToVerticesL, localVertexMap, logicalOperatorMap, v, L);
+    localUnencoding(vertexToEdgesL, edgeToVerticesL, localVertexMap, logicalOperatorMap, v, L, engine, false);
     modifyLogicalOperators(logicals, logicalOperatorMap, e);
     sint expectedL1 = {22, 23, 32, 33, 42, 43, 52, 53, e - 2, e - 1, e + 2, e + 3};
     sint expectedL2 = {2, 5, 18, 21, 25, 34, 38, 41, 54, 57, e - 2};
@@ -371,7 +375,7 @@ TEST(unencode, no_unencode)
         auto edgeToFaces = buildEdgeToFaces(L);
         vint qubits;
         double p = 0.0;
-        unencode(vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, p, engine, dist);
+        unencode(vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, p, engine, dist, false);
         EXPECT_EQ(qubitIndices.size(), 2 * L * L);
         for (int i = 0; i < 2 * L * L; ++i) EXPECT_TRUE(qubitIndices.find(i) != qubitIndices.end());
         EXPECT_EQ(qubits.size(), 3 * L * L);
@@ -396,7 +400,7 @@ TEST(unencode, full_unencode)
         auto edgeToFaces = buildEdgeToFaces(L);
         vint qubits;
         double p = 1.0;
-        unencode(vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, p, engine, dist);
+        unencode(vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, p, engine, dist, false);
         // unencodedVertices
         for (int v = 0; v < L * L; ++v)
         {
@@ -457,7 +461,7 @@ TEST(pairToEdge, full_unencode)
     auto edgeToFaces = buildEdgeToFaces(L);
     vint qubits;
     double p = 1.0;
-    unencode(vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, p, engine, dist);
+    unencode(vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, p, engine, dist, false);
     int offset = 3 * L * L;
     EXPECT_EQ(pairToEdge(20, 28, vertexToEdges, edgeToVertices), offset + 31);
     EXPECT_EQ(pairToEdge(19, 27, vertexToEdges, edgeToVertices), offset + 32);

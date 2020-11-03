@@ -69,7 +69,7 @@ TEST(calcSyndrome, expected_behaviour_full_unencoding)
     auto edgeToFaces = buildEdgeToFaces(L);
     vint qubits;
     double p = 1.0;
-    unencode(vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, p, engine, dist);
+    unencode(vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, p, engine, dist, false);
     // vint syndrome(L * L, 0);
     vint syndrome;
     // Errors on CC qubits should have no effect
@@ -348,7 +348,7 @@ TEST(buildLift, empty_lift_full_unencode)
     auto edgeToFaces = buildEdgeToFaces(L);
     vint qubits;
     double p = 1.0;
-    unencode(vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, p, engine, dist);
+    unencode(vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, p, engine, dist, false);
     auto faceToEdges = buildFaceToEdges(L);
     auto lift = buildLift(L, vertexToQubits, unencodedVertices, vertexToEdges, qubitIndices, faceToEdges);
     EXPECT_EQ(lift.size(), 0);
@@ -474,7 +474,7 @@ TEST(pairExcitations, fully_unencoded)
     auto edgeToFaces = buildEdgeToFaces(L);
     vint qubits;
     double p = 1.0;
-    unencode(vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, p, engine, dist);
+    unencode(vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, p, engine, dist, false);
     // b-b & g-g
     vint excitations = {25, 33, 14, 22};
     vint paths, redVertices;
@@ -537,7 +537,7 @@ TEST(findCorrection, full_unencode)
     auto edgeToFaces = buildEdgeToFaces(L);
     vint qubits;
     double p = 1.0;
-    unencode(vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, p, engine, dist);
+    unencode(vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, p, engine, dist, false);
     auto faceToEdges = buildFaceToEdges(L);
     auto lift = buildLift(L, vertexToQubits, unencodedVertices, vertexToEdges, qubitIndices, faceToEdges);
 
@@ -612,7 +612,7 @@ TEST(checkCorrection, full_unencode)
     auto edgeToFaces = buildEdgeToFaces(L);
     vint qubits;
     double p = 1.0;
-    unencode(vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, p, engine, dist);
+    unencode(vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, p, engine, dist, false);
     // Stabilizer error b
     int offset = 3 * L * L;
     qubits[offset + 30] = 1;

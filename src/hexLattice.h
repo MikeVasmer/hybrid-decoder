@@ -52,7 +52,7 @@ vpint buildEdgeToVertices(int L);
 
 vsint buildLogicals(int L);
 
-void localUnencoding(vvint &vertexToEdgesLocal, vpint &edgeToVerticesLocal, vint &localVertexMap, std::map<std::pair<int, int>, std::vector<int>> &logicalOperatorMap, int v, int L);
+void localUnencoding(vvint &vertexToEdgesLocal, vpint &edgeToVerticesLocal, vint &localVertexMap, std::map<std::pair<int, int>, std::vector<int>> &logicalOperatorMap, int v, int L, std::mt19937 &engine, bool random);
 
 void modifyVertexToQubits(vsint &vertexToQubits, const vvint &vertexToEdgesL, const vint &localVertexMap, int v, int e, int L);
 
@@ -62,7 +62,7 @@ void modifyLogicalOperators(vsint &logicals, const std::map<std::pair<int, int>,
 
 void removeRedundantEdges(vpint &edgeToVertices, const sint &qubitIndices, const vpint &edgeToFaces, int L);
 
-void unencode(vsint &vertexToQubits, vpint &edgeToVertices, sint &unencodedVertices, sint &qubitIndices, vint &qubits, vsint& logicals, const vpint &edgeToFaces, vvint &vertexToEdges, int L, double p, std::mt19937& engine, std::uniform_real_distribution<double>& dist);
+void unencode(vsint &vertexToQubits, vpint &edgeToVertices, sint &unencodedVertices, sint &qubitIndices, vint &qubits, vsint& logicals, const vpint &edgeToFaces, vvint &vertexToEdges, int L, double p, std::mt19937& engine, std::uniform_real_distribution<double>& dist, bool randomizeUnencoding);
 
 int pairToEdge(int v, int u, const vvint &vertexToEdges, const vpint &edgeToVertices);
 
