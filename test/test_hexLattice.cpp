@@ -198,9 +198,10 @@ TEST(modifyVertexToQubits, correct_output_L6)
     vvint vertexToEdgesL;
     vint localVertexMap;
     vpint edgeToVerticesL;
-    std::map<std::pair<int, int>, std::vector<int>> logicalOperatorMap;
+    std::map<std::pair<int, int>, std::vector<int>> logicalOperatorMapX;
+    std::map<std::pair<int, int>, std::vector<int>> logicalOperatorMapZ;
     std::mt19937 engine;
-    localUnencoding(vertexToEdgesL, edgeToVerticesL, localVertexMap, logicalOperatorMap, v, L, engine, false);
+    localUnencoding(vertexToEdgesL, edgeToVerticesL, localVertexMap, logicalOperatorMapX, logicalOperatorMapZ, v, L, engine, false);
     modifyVertexToQubits(vertexToQubits, vertexToEdgesL, localVertexMap, v, e, L);
     sint expectedQ = {e, e + 1, e + 2, e + 3};
     EXPECT_EQ(vertexToQubits[v], expectedQ);
@@ -232,9 +233,10 @@ TEST(modifyVertexToQubits, full_unencode)
             vvint vertexToEdgesL;
             vint localVertexMap;
             vpint edgeToVerticesL;
-            std::map<std::pair<int, int>, std::vector<int>> logicalOperatorMap;
+            std::map<std::pair<int, int>, std::vector<int>> logicalOperatorMapX;
+            std::map<std::pair<int, int>, std::vector<int>> logicalOperatorMapZ;
             std::mt19937 engine;
-            localUnencoding(vertexToEdgesL, edgeToVerticesL, localVertexMap, logicalOperatorMap, v, L, engine, false);
+            localUnencoding(vertexToEdgesL, edgeToVerticesL, localVertexMap, logicalOperatorMapX, logicalOperatorMapZ, v, L, engine, false);
             modifyVertexToQubits(vertexToQubits, vertexToEdgesL, localVertexMap, v, e, L);
             e += 4;
         }
@@ -255,9 +257,10 @@ TEST(modifyEdgeToVertices, correct_L6)
     vvint vertexToEdgesL;
     vint localVertexMap;
     vpint edgeToVerticesL;
-    std::map<std::pair<int, int>, std::vector<int>> logicalOperatorMap;
+    std::map<std::pair<int, int>, std::vector<int>> logicalOperatorMapX;
+    std::map<std::pair<int, int>, std::vector<int>> logicalOperatorMapZ;
     std::mt19937 engine;
-    localUnencoding(vertexToEdgesL, edgeToVerticesL, localVertexMap, logicalOperatorMap, v, L, engine, false);
+    localUnencoding(vertexToEdgesL, edgeToVerticesL, localVertexMap, logicalOperatorMapX, logicalOperatorMapZ, v, L, engine, false);
     modifyEdgeToVertices(edgeToVertices, edgeToVerticesL, v, L, localVertexMap);
     std::pair<int, int> expected{1, 35};
     EXPECT_EQ(edgeToVertices[e], expected);
@@ -277,7 +280,7 @@ TEST(modifyEdgeToVertices, correct_L6)
     e += 4;
     // Unencode (1, 5)
     v = 31;
-    localUnencoding(vertexToEdgesL, edgeToVerticesL, localVertexMap, logicalOperatorMap, v, L, engine, false);
+    localUnencoding(vertexToEdgesL, edgeToVerticesL, localVertexMap, logicalOperatorMapX, logicalOperatorMapZ, v, L, engine, false);
     modifyEdgeToVertices(edgeToVertices, edgeToVerticesL, v, L, localVertexMap);
     expected = {24, 32};
     EXPECT_EQ(edgeToVertices[e], expected);
@@ -337,15 +340,16 @@ TEST(modifyLogicalOperators, correct_L6)
     vvint vertexToEdgesL;
     vint localVertexMap;
     vpint edgeToVerticesL;
-    std::map<std::pair<int, int>, std::vector<int>> logicalOperatorMap;
+    std::map<std::pair<int, int>, std::vector<int>> logicalOperatorMapX;
+    std::map<std::pair<int, int>, std::vector<int>> logicalOperatorMapZ;
     std::mt19937 engine;
-    localUnencoding(vertexToEdgesL, edgeToVerticesL, localVertexMap, logicalOperatorMap, v, L, engine, false);
-    modifyLogicalOperators(logicals, logicalOperatorMap, e);
+    localUnencoding(vertexToEdgesL, edgeToVerticesL, localVertexMap, logicalOperatorMapX, logicalOperatorMapZ, v, L, engine, false);
+    modifyLogicalOperators(logicals, logicalOperatorMapX, e);
     e += 4;
     // Unencode (1, 5)
     v = 31;
-    localUnencoding(vertexToEdgesL, edgeToVerticesL, localVertexMap, logicalOperatorMap, v, L, engine, false);
-    modifyLogicalOperators(logicals, logicalOperatorMap, e);
+    localUnencoding(vertexToEdgesL, edgeToVerticesL, localVertexMap, logicalOperatorMapX, logicalOperatorMapZ, v, L, engine, false);
+    modifyLogicalOperators(logicals, logicalOperatorMapX, e);
     sint expectedL1 = {22, 23, 32, 33, 42, 43, 52, 53, e - 2, e - 1, e + 2, e + 3};
     sint expectedL2 = {2, 5, 18, 21, 25, 34, 38, 41, 54, 57, e - 2};
     sint expectedL4 = {4, 7, 20, 23, 24, 27, 40, 43, 56, 59, e + 1};
@@ -373,9 +377,11 @@ TEST(unencode, no_unencode)
         auto logicals = buildLogicals(L);
         sint unencodedVertices, qubitIndices;
         auto edgeToFaces = buildEdgeToFaces(L);
+        auto faceToEdges = buildFaceToEdges(L);
         vint qubits;
         double p = 0.0;
-        unencode(vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, p, engine, dist, false);
+        auto lift = buildLift(L, vertexToQubits, vertexToEdges, faceToEdges);
+        unencode(vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, p, engine, dist, false, true, lift);
         EXPECT_EQ(qubitIndices.size(), 2 * L * L);
         for (int i = 0; i < 2 * L * L; ++i) EXPECT_TRUE(qubitIndices.find(i) != qubitIndices.end());
         EXPECT_EQ(qubits.size(), 3 * L * L);
@@ -400,7 +406,9 @@ TEST(unencode, full_unencode)
         auto edgeToFaces = buildEdgeToFaces(L);
         vint qubits;
         double p = 1.0;
-        unencode(vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, p, engine, dist, false);
+        auto faceToEdges = buildFaceToEdges(L);
+        auto lift = buildLift(L, vertexToQubits, vertexToEdges, faceToEdges);
+        unencode(vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, p, engine, dist, false, true, lift);
         // unencodedVertices
         for (int v = 0; v < L * L; ++v)
         {
@@ -416,8 +424,9 @@ TEST(unencode, full_unencode)
         for (auto const &qs : vertexToQubits) EXPECT_EQ(qs.size(), 4);
         // edgeToVertices 
         EXPECT_EQ(edgeToVertices.size(), 3 * L * L + 4 * L * L / 3);
+        // WARNING: We only longer delete the 'redundant edges' for r-only unencoding
         std::pair<int, int> defaultPair{0, 0};
-        for (int e = 0; e < 3 * L * L; ++e) EXPECT_EQ(edgeToVertices[e], defaultPair);
+        for (int e = 0; e < 3 * L * L; ++e) EXPECT_EQ(edgeToVertices[e], defaultPair); 
         // logicalOperators 
         EXPECT_EQ(logicals[0].size(), 2 * L);
         EXPECT_EQ(logicals[1].size(), L);
@@ -461,8 +470,248 @@ TEST(pairToEdge, full_unencode)
     auto edgeToFaces = buildEdgeToFaces(L);
     vint qubits;
     double p = 1.0;
-    unencode(vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, p, engine, dist, false);
+    auto faceToEdges = buildFaceToEdges(L);
+    auto lift = buildLift(L, vertexToQubits, vertexToEdges, faceToEdges);
+    unencode(vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, p, engine, dist, false, true, lift);
     int offset = 3 * L * L;
     EXPECT_EQ(pairToEdge(20, 28, vertexToEdges, edgeToVertices), offset + 31);
     EXPECT_EQ(pairToEdge(19, 27, vertexToEdges, edgeToVertices), offset + 32);
+}
+
+TEST(ccNeighbors, expected_output)
+{
+    int L = 10;
+    int v = 0;
+    auto neighbors = ccNeighbors(v, L);
+    EXPECT_TRUE(neighbors.find(1) != neighbors.end()); // +x 
+    EXPECT_TRUE(neighbors.find(9) != neighbors.end()); // -x
+    EXPECT_TRUE(neighbors.find(11) != neighbors.end()); // +xy
+    EXPECT_TRUE(neighbors.find(99) != neighbors.end()); // -xy
+    EXPECT_TRUE(neighbors.find(10) != neighbors.end()); // +y
+    EXPECT_TRUE(neighbors.find(90) != neighbors.end()); // -y
+}
+
+TEST(combinationsUpToK, expected_output)
+{
+    int n = 6;
+    int k = 3;
+    auto combs = combinationsUpToK(n, k);
+    vvint expectedOut = {
+        {0},
+        {1},
+        {2},
+        {3},
+        {4},
+        {5},
+        {0, 1},
+        {0, 2},
+        {0, 3},
+        {0, 4},
+        {0, 5},
+        {1, 2},
+        {1, 3},
+        {1, 4},
+        {1, 5},
+        {2, 3},
+        {2, 4},
+        {2, 5},
+        {3, 4},
+        {3, 5},
+        {4, 5},
+        {0, 1, 2},
+        {0, 1, 3},
+        {0, 1, 4},
+        {0, 1, 5},
+        {0, 2, 3},
+        {0, 2, 4},
+        {0, 2, 5},
+        {0, 3, 4},
+        {0, 3, 5},
+        {0, 4, 5},
+        {1, 2, 3},
+        {1, 2, 4},
+        {1, 2, 5},
+        {1, 3, 4},
+        {1, 3, 5},
+        {1, 4, 5},
+        {2, 3, 4},
+        {2, 3, 5},
+        {2, 4, 5},
+        {3, 4, 5},
+    };
+    // for (auto comb : combs)
+    // {
+    //     for (auto c : comb)
+    //     {
+    //         std::cerr << c << " ";
+    //     }
+    //     std::cerr << std::endl;
+    // }
+    EXPECT_EQ(combs, expectedOut);
+}
+
+TEST(buildLift, expected_output_L6)
+{
+    int L = 6;
+    auto vertexToQubits = buildVertexToFaces(L);
+    sint unencodedVertices;
+    auto vertexToEdges = buildVertexToEdges(L);
+    sint qubitIndices;
+    for (int i = 0; i < 2 * L * L; ++i) qubitIndices.insert(i);
+    auto faceToEdges = buildFaceToEdges(L);
+    auto lift = buildLift(L, vertexToQubits, vertexToEdges, faceToEdges);
+    // std::cerr << lift.size() << std::endl;
+    // for (auto it = lift.begin(); it != lift.end(); ++it)
+    // {
+    //     auto edges = it->first;
+    //     auto error = it->second;
+    //     std::cerr << "Edges : ";
+    //     for (auto e : edges) std::cerr << e << " ";
+    //     std::cerr << ", Error : ";
+    //     for (auto e : error) std::cerr << e << " ";
+    //     std::cerr << std::endl;
+    // }
+
+    // Vertex (5, 1) = 11
+    // Single qubit errors
+    vint expectedQs = {9};
+    vint edges = {14, 30};
+    EXPECT_EQ(lift[edges], expectedQs);
+    expectedQs = {8};
+    edges = {14, 16};
+    EXPECT_EQ(lift[edges], expectedQs);
+    expectedQs = {11};
+    edges = {16, 33};
+    EXPECT_EQ(lift[edges], expectedQs);
+    expectedQs = {20};
+    edges = {30, 34};
+    EXPECT_EQ(lift[edges], expectedQs);
+    expectedQs = {22};
+    edges = {33, 35};
+    EXPECT_EQ(lift[edges], expectedQs);
+    expectedQs = {23};
+    edges = {34, 35};
+    EXPECT_EQ(lift[edges], expectedQs);
+    // Two qubit errors
+    expectedQs = {8, 9};
+    edges = {16, 30};
+    EXPECT_EQ(lift[edges], expectedQs);
+    expectedQs = {9, 11};
+    edges = {14, 16, 30, 33};
+    EXPECT_EQ(lift[edges], expectedQs);
+    expectedQs = {9, 20};
+    edges = {14, 34};
+    EXPECT_EQ(lift[edges], expectedQs);
+    expectedQs = {9, 22};
+    edges = {14, 30, 33, 35};
+    EXPECT_EQ(lift[edges], expectedQs);
+    expectedQs = {9, 23};
+    edges = {14, 30, 34, 35};
+    EXPECT_EQ(lift[edges], expectedQs);
+    expectedQs = {8, 11};
+    edges = {14, 33};
+    EXPECT_EQ(lift[edges], expectedQs);
+    expectedQs = {8, 20};
+    edges = {14, 16, 30, 34};
+    EXPECT_EQ(lift[edges], expectedQs);
+    expectedQs = {8, 22};
+    edges = {14, 16, 33, 35};
+    EXPECT_EQ(lift[edges], expectedQs);
+    expectedQs = {8, 23};
+    edges = {14, 16, 34, 35};
+    EXPECT_EQ(lift[edges], expectedQs);
+    expectedQs = {11, 20};
+    edges = {16, 30, 33, 34};
+    EXPECT_EQ(lift[edges], expectedQs);
+    expectedQs = {11, 22};
+    edges = {16, 35};
+    EXPECT_EQ(lift[edges], expectedQs);
+    expectedQs = {11, 23};
+    edges = {16, 33, 34, 35};
+    EXPECT_EQ(lift[edges], expectedQs);
+    expectedQs = {20, 22};
+    edges = {30, 33, 34, 35};
+    EXPECT_EQ(lift[edges], expectedQs);
+    expectedQs = {20, 23};
+    edges = {30, 35};
+    EXPECT_EQ(lift[edges], expectedQs);
+    expectedQs = {22, 23};
+    edges = {33, 34};
+    EXPECT_EQ(lift[edges], expectedQs);
+    // Three qubit errors
+    expectedQs = {8, 9, 11};
+    vint expectedQsAlt = {20, 22, 23}; // The same up to stabilizer
+    edges = {30, 33};
+    EXPECT_TRUE(lift[edges] == expectedQs || lift[edges] == expectedQsAlt);
+    expectedQs = {8, 9, 20};
+    expectedQsAlt = {11, 22, 23};
+    edges = {16, 34};
+    EXPECT_TRUE(lift[edges] == expectedQs || lift[edges] == expectedQsAlt);
+    expectedQs = {8, 9, 22};
+    expectedQsAlt = {11, 20, 23};
+    edges = {16, 30, 33, 35};
+    EXPECT_TRUE(lift[edges] == expectedQs || lift[edges] == expectedQsAlt);
+    expectedQs = {8, 9, 23};
+    expectedQsAlt = {11, 20, 22};
+    edges = {16, 30, 34, 35};
+    EXPECT_TRUE(lift[edges] == expectedQs || lift[edges] == expectedQsAlt);
+    expectedQs = {8, 11, 20};
+    expectedQsAlt = {9, 22, 23};
+    edges = {14, 30, 33, 34};
+    EXPECT_TRUE(lift[edges] == expectedQs || lift[edges] == expectedQsAlt);
+    expectedQs = {8, 11, 22};
+    expectedQsAlt = {9, 20, 23};
+    edges = {14, 35};
+    EXPECT_TRUE(lift[edges] == expectedQs || lift[edges] == expectedQsAlt);
+    expectedQs = {8, 11, 23};
+    expectedQsAlt = {9, 20, 22};
+    edges = {14, 33, 34, 35};
+    EXPECT_TRUE(lift[edges] == expectedQs || lift[edges] == expectedQsAlt);
+    expectedQs = {8, 20, 22};
+    expectedQsAlt = {9, 11, 23};
+    edges = {14, 16, 30, 33, 34, 35};
+    EXPECT_TRUE(lift[edges] == expectedQs || lift[edges] == expectedQsAlt);
+    expectedQs = {8, 20, 23};
+    expectedQsAlt = {9, 11, 22};
+    edges = {14, 16, 30, 35};
+    EXPECT_TRUE(lift[edges] == expectedQs || lift[edges] == expectedQsAlt);
+    expectedQs = {8, 22, 23};
+    expectedQsAlt = {9, 11, 20};
+    edges = {14, 16, 33, 34};
+    EXPECT_TRUE(lift[edges] == expectedQs || lift[edges] == expectedQsAlt);
+}
+
+// TEST(buildLift, empty_lift_full_unencode)
+// {
+//     int L = 6;
+//     auto vertexToQubits = buildVertexToFaces(L);
+//     auto edgeToVertices = buildEdgeToVertices(L);
+//     auto vertexToEdges = buildVertexToEdges(L);
+//     auto logicals = buildLogicals(L);
+//     sint unencodedVertices, qubitIndices;
+//     auto edgeToFaces = buildEdgeToFaces(L);
+//     vint qubits;
+//     double p = 1.0;
+//     auto faceToEdges = buildFaceToEdges(L);
+//     auto lift = buildLift(L, vertexToQubits, vertexToEdges, faceToEdges);
+//     unencode(vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, p, engine, dist, false, true, lift);
+//     EXPECT_EQ(lift.size(), 0);
+// }
+
+TEST(buildLift, L18_problem)
+{
+    int L = 18;
+    auto vertexToQubits = buildVertexToFaces(L);
+    sint unencodedVertices;
+    auto vertexToEdges = buildVertexToEdges(L);
+    sint qubitIndices;
+    for (int i = 0; i < 2 * L * L; ++i) qubitIndices.insert(i);
+    auto faceToEdges = buildFaceToEdges(L);
+    auto lift = buildLift(L, vertexToQubits, vertexToEdges, faceToEdges);
+
+    vint problemEdges = {41, 97};
+    EXPECT_NO_THROW(auto qs = lift.at(problemEdges));
+    auto qs = lift.at(problemEdges);
+    vint expectedQs = {27, 62};
+    EXPECT_EQ(qs, expectedQs);
 }

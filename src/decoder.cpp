@@ -91,24 +91,6 @@ void pairExcitations(const vint &excitations, const vpint &edgeToVertices, const
     if (testSet.size() != paths.size()) throw std::length_error("Matching paths have duplicate edges!");
 }
 
-vvint combinationsUpToK(int n, int k)
-{
-    vvint combinations;
-    for (int j = 1; j <= k; ++j)
-    {
-        std::vector<bool> selector(n);
-        std::fill(selector.begin(), selector.begin() + j, true);
-        do {
-            vint comb;    
-            for (int i = 0; i < n; ++i) {
-                if (selector[i]) comb.push_back(i);
-            }
-            combinations.push_back(comb);
-        } while (std::prev_permutation(selector.begin(), selector.end()));
-    }
-    return combinations;
-}
-
 vint binToList(vint &bin)
 {
     vint list;
@@ -117,50 +99,6 @@ vint binToList(vint &bin)
         if (bin[i] == 1) list.push_back(i);
     }
     return list;
-}
-
-// Build a map from local syndrome edges to local errors (r vertices only)
-std::map<vint, vint> buildLift(int L, const vsint &vertexToQubits, const sint &unencodedVertices, const vvint &vertexToEdges, const sint &qubitIndices, const vvint &faceToEdges)
-{
-    vvint indexCombinations = combinationsUpToK(6, 3);
-    std::map<vint, vint> lift;
-    for (int v = 0; v < L * L; ++v)
-    {
-        if (vertexColor(v, L) != r) continue;
-        if (unencodedVertices.find(v) != unencodedVertices.end()) continue;
-        vint qs(vertexToQubits[v].begin(), vertexToQubits[v].end());
-        auto edges = vertexToEdges[v];
-        // std::sort(edges.begin(), edges.end());
-        for (auto const ic : indexCombinations)
-        {
-            vint error;
-            for (auto i : ic) error.push_back(qs[i]);
-            // Find boundary of the error
-            sint boundary;
-            for (auto f : error)
-            {
-                for (auto e : faceToEdges[f])
-                {
-                    if (boundary.find(e) == boundary.end()) boundary.insert(e);
-                    else boundary.erase(e);
-                }
-            }
-            vint boundaryR; // restricted to v
-            for (auto e : boundary)
-            {
-                if (std::find(edges.begin(), edges.end(), e) != edges.end())
-                {
-                    boundaryR.push_back(e);
-                }
-            }
-            // We only add if the boundary is not there already, as we don't care about errors that are the same up to stabilizers
-            if (lift.find(boundaryR) == lift.end())
-            {
-                lift[boundaryR] = error;
-            } 
-        }
-    }
-    return lift;
 }
 
 vint localLift(int v, int L, const vint &paths, const vvint &vertexToEdges, const std::map<vint, vint> &lift)
@@ -191,29 +129,164 @@ void generateError(vint &qubits, const sint &qubitIndices, double p, std::mt1993
     }
 }
 
-vint findCorrection(const vint &excitations, const vpint &edgeToVertices, const vvint &vertexToEdges, int L, const std::map<vint, vint> &lift)
+// c is color of unencoded face
+vint reRoute(const int v1, const int v2, const int centralV, const int c, const int L, const vvint &vertexToEdges, const vpint &edgeToVertices)
+{
+    // (v1, v2) is an r-edge
+    auto v1Neighbors = ccNeighbors(v1, L);
+    // Find a an alternate path v1 -> v2 via a {g, b} \ c edge
+    vint newPath;
+    int w1, w2;
+    for (auto const v : v1Neighbors)
+    {
+        if (vertexColor(v, L) == c) continue;
+        auto vNeighbors = ccNeighbors(v, L);
+        if (vNeighbors.find(centralV) != vNeighbors.end())
+        {
+            w1 = v;
+            newPath.push_back(pairToEdge(v1, w1, vertexToEdges, edgeToVertices));
+            break;
+        } 
+    }
+    auto w1Edges = vertexToEdges[w1];
+    for (auto const e : w1Edges)
+    {
+        auto vs = edgeToVertices[e];
+        if (vertexColor(vs.first, L) != vertexColor(vs.second, L)) continue;
+        if (vs.first == w1) w2 = vs.second;
+        else w2 = vs.first;
+        auto w2Neighbors = ccNeighbors(w2, L);
+        if (w2Neighbors.find(centralV) != w2Neighbors.end() && w2Neighbors.find(v2) != w2Neighbors.end()) 
+        {
+            newPath.push_back(e);
+            newPath.push_back(pairToEdge(v2, w2, vertexToEdges, edgeToVertices));
+            break; 
+        }
+    }
+    if (newPath.size() == 1) // Sometimes it goes the wrong way
+    {
+        newPath.clear();
+        for (auto const v : v1Neighbors)
+        {
+            if (vertexColor(v, L) == c) continue;
+            auto vNeighbors = ccNeighbors(v, L);
+            // Enforce other choice for w1
+            if (vNeighbors.find(centralV) != vNeighbors.end() && v != w1)
+            {
+                w1 = v;
+                newPath.push_back(pairToEdge(v1, w1, vertexToEdges, edgeToVertices));
+                break;
+            } 
+        }
+        w1Edges = vertexToEdges[w1];
+        for (auto const e : w1Edges)
+        {
+            auto vs = edgeToVertices[e];
+            if (vertexColor(vs.first, L) != vertexColor(vs.second, L)) continue;
+            if (vs.first == w1) w2 = vs.second;
+            else w2 = vs.first;
+            auto w2Neighbors = ccNeighbors(w2, L);
+            if (w2Neighbors.find(centralV) != w2Neighbors.end() && w2Neighbors.find(v2) != w2Neighbors.end()) 
+            {
+                newPath.push_back(e);
+                newPath.push_back(pairToEdge(v2, w2, vertexToEdges, edgeToVertices));
+                break; 
+            }
+        }
+    }
+    return newPath;
+}
+
+sint findCorrection(const vint &excitations, const vpint &edgeToVertices, const vvint &vertexToEdges, int L, const std::map<vint, vint> &lift, const sint &unencodedVertices)
 {
     vint rgPaths, rbPaths, rgVertices, rbVertices;
-    vint correction;
+    sint correction;
     // Compute matchings using pairExcitations 
     pairExcitations(excitations, edgeToVertices, vertexToEdges, b, L, rgPaths, rgVertices);
     pairExcitations(excitations, edgeToVertices, vertexToEdges, g, L, rbPaths, rbVertices);
+    // Process matchings
+    vvint pathTup = {rgPaths, rbPaths};
+    vint cols = {g, b};
+    vint changeEdges;
+    for (int i = 0; i < 2; ++i)
+    {
+        for (auto const e : pathTup[i])
+        {
+            if (e >= 3 * L * L) // toric code edges have indices larger than original max edge index of 3*L*L-1
+            {
+                if (vertexColor(edgeToVertices[e].first, L) != r)
+                {
+                    // Add each g-g and b-b edge to correction
+                    if (correction.find(e) != correction.end()) correction.erase(e);
+                    else correction.insert(e); 
+                } 
+                else {
+                    int v1 = edgeToVertices[e].first;
+                    int v2 = edgeToVertices[e].second;
+                    auto v1Neighbors = ccNeighbors(v1, L); // Color code neighbors
+                    auto v2Neighbors = ccNeighbors(v2, L);
+                    // Find the vertex of the unencoded face
+                    int cV, c;
+                    for (auto const v : v1Neighbors)
+                    {
+                        if (v2Neighbors.find(v) != v2Neighbors.end())
+                        {
+                            if (unencodedVertices.find(v) != unencodedVertices.end())
+                            {
+                                cV = v;
+                                break;
+                            }
+                        }
+                    }
+                    c = vertexColor(cV, L); // color 
+                    // If r-edge in rgParing is from a g-face then add to corr, analogous for b case
+                    if (c == cols[i]) correction.insert(e); 
+                    // Get the new path connecting v1 and v2 and add to the edges to be changed
+                    auto newEdges = reRoute(v1, v2, cV, cols[i], L, vertexToEdges, edgeToVertices);
+                    for (auto const ne : newEdges)
+                    {
+                        changeEdges.push_back(ne);
+                        // Add any re-routed g-g or b-b edges to the correction
+                        if (ne >= 3 * L * L)
+                        {
+                            // We add modulo 2 (these edges could have been added earlier)
+                            if (correction.find(ne) != correction.end()) correction.erase(ne);
+                            else correction.insert(ne);
+                        } 
+                    } 
+                    changeEdges.push_back(e); // We want to remove e
+                }
+            }    
+        }
+    }
     // Combine paths and red vertex vectors
     vint paths = rgPaths;
     paths.insert(paths.end(), rbPaths.begin(), rbPaths.end());
     vint rVerticesTmp = rgVertices;
     rVerticesTmp.insert(rVerticesTmp.end(), rbVertices.begin(), rbVertices.end());
     sint rVertices(rVerticesTmp.begin(), rVerticesTmp.end());
-    // Add each g-g and b-b edge to correction
-    for (auto const e : paths)
+    // Change the pairing according to edges computed earlier
+    for (auto const e : changeEdges)
     {
-        if (e >= 3 * L * L) correction.push_back(e); // g-g or b-b edges have indices larger than original max edge index of 3*L*L-1 
+        if (std::find(paths.begin(), paths.end(), e) == paths.end())
+        {
+            paths.push_back(e);
+        }
+        else
+        {
+            paths.erase(std::find(paths.begin(), paths.end(), e));
+        }
     }
     // For each red vertex use localLift to find qubits to be added to correction
     for (auto const rv : rVertices)
     {
         auto localCorr = localLift(rv, L, paths, vertexToEdges, lift);
-        for (auto corr : localCorr) correction.push_back(corr);
+        for (auto corr : localCorr)
+        {
+            // We add modulo 2
+            if (correction.find(corr) != correction.end()) correction.erase(corr);
+            else correction.insert(corr);
+        }
     }
     return correction;
 }

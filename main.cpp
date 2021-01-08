@@ -13,7 +13,7 @@ bool oneRun(vint &qubits, const sint &qubitIndices, double errorP, std::mt19937 
     generateError(qubits, qubitIndices, errorP, engine, dist);
     vint excitations;
     calcSyndrome(excitations, vertexToQubits, qubits, unencodedVertices, L);
-    auto correction = findCorrection(excitations, edgeToVertices, vertexToEdges, L, lift);
+    auto correction = findCorrection(excitations, edgeToVertices, vertexToEdges, L, lift, unencodedVertices);
     for (auto q : correction)
     {
         qubits[q] = (qubits[q] + 1) % 2;
@@ -60,6 +60,7 @@ int main(int argc, char* argv[])
     if (!(ss >> std::boolalpha >> randomizeUnencoding)) throw std::invalid_argument("Problem with randomizeUnencoding.");
     int trials = atoi(argv[5]);
     int job = atoi(argv[6]);
+    bool rOnly = false;
 
     // Parameter checks
     if (L % 3 != 0 || L <= 0) throw std::invalid_argument("L must be a positive multiple of three.");
@@ -81,14 +82,14 @@ int main(int argc, char* argv[])
     auto vertexToEdges = buildVertexToEdges(L);
     auto edgeToFaces = buildEdgeToFaces(L);
     auto logicals = buildLogicals(L);
+    // Build Lift
+    auto faceToEdges = buildFaceToEdges(L);
+    auto lift = buildLift(L, vertexToQubits, vertexToEdges, faceToEdges);
     // Unencode
     sint unencodedVertices, qubitIndices;
     vint qubits;
-    unencode(vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, unencodingP, engine, dist, randomizeUnencoding);
-    // Build Lift
-    auto faceToEdges = buildFaceToEdges(L);
-    auto lift = buildLift(L, vertexToQubits, unencodedVertices, vertexToEdges, qubitIndices, faceToEdges);
-
+    unencode(vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, unencodingP, engine, dist, randomizeUnencoding, rOnly, lift);
+    
     // Save lattice
     // Random number as a file name
     auto rand = bigDice(engine);
