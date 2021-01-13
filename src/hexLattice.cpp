@@ -587,47 +587,59 @@ std::map<vint, vint> buildLift(int L, const vsint &vertexToFaces, const vvint &v
     return lift;
 }
 
-void modifyLift(std::map<vint, vint> &lift, const std::map<std::pair<int, int>, vint> &logicalOperatorMapZ)
+void modifyLift(std::map<vint, vint> &lift, const std::map<std::pair<int, int>, vint> &logicalOperatorMapZ, const int e)
 {
     for (auto const &item : lift)
     {
         auto boundary = item.first;
         auto error = item.second;
         if (error.size() == 1) continue; // The only time the lift may be modified is for weight >= two errors (logical operators)
-        if (error.size() == 2)
+        for (auto const &itemLO : logicalOperatorMapZ)
         {
-            for (auto const &itemLO : logicalOperatorMapZ)
+            auto cc = itemLO.first; // color code
+            auto tc = itemLO.second; // toric code
+            for (int i = 0; i < tc.size(); ++i) tc[i] = e + tc[i]; // Need to add the edge index
+            if (error.size() == 2)
             {
-                auto cc = itemLO.first; // color code
-                auto tc = itemLO.second; // toric code
-                if (error.size() == 2)
+                if ((cc.first == error[0] && cc.second == error[1]) || (cc.first == error[1] && cc.second == error[0]))
                 {
-                    if ((cc.first == error[0] && cc.second == error[1]) || (cc.first == error[1] && cc.second == error[0]))
-                    {
-                        lift[boundary] = tc;
-                    }
+                    lift[boundary] = tc;
+                    continue;
                 }
-                else if (error.size() == 3) // Error could be logical operator of ball code and one color code face
+            }
+            else if (error.size() == 3) // Error could be logical operator of ball code and one color code face
+            {
+                if ((cc.first == error[0] && cc.second == error[1]) || (cc.first == error[1] && cc.second == error[0]))
                 {
-                    if ((cc.first == error[0] && cc.second == error[1]) || (cc.first == error[1] && cc.second == error[0]))
-                    {
-                        tc.push_back(error[2]); // Add color code face
-                        lift[boundary] = tc;
-                    }
-                    else if ((cc.first == error[0] && cc.second == error[2]) || (cc.first == error[2] && cc.second == error[0]))
-                    {
-                        tc.push_back(error[1]);
-                        lift[boundary] = tc;
-                    }
-                    else if ((cc.first == error[1] && cc.second == error[2]) || (cc.first == error[2] && cc.second == error[1]))
-                    {
-                        tc.push_back(error[0]);
-                        lift[boundary] = tc;
-                    }
+                    tc.push_back(error[2]); // Add color code face
+                    lift[boundary] = tc;
+                    continue;
+                }
+                else if ((cc.first == error[0] && cc.second == error[2]) || (cc.first == error[2] && cc.second == error[0]))
+                {
+                    tc.push_back(error[1]);
+                    lift[boundary] = tc;
+                    continue;
+                }
+                else if ((cc.first == error[1] && cc.second == error[2]) || (cc.first == error[2] && cc.second == error[1]))
+                {
+                    tc.push_back(error[0]);
+                    lift[boundary] = tc;
+                    continue;
                 }
             }
         }
     }
+}
+
+bool neighborUnencoded(int v, int L, sint &unencodedVertices)
+{
+    auto neighV = ccNeighbors(v, L);
+    for (auto u : neighV)
+    {
+        if (unencodedVertices.find(u) != unencodedVertices.end()) return true; 
+    }
+    return false;
 }
 
 // vertexToQubits should be a copy of vertexToFaces
@@ -645,12 +657,7 @@ void unencode(vsint &vertexToQubits, vpint &edgeToVertices, sint &unencodedVerti
         if (rOnly && vertexColor(v, L) != r) continue;
         if (dist(engine) <= p)
         {
-            auto neighV = ccNeighbors(v, L);
-            for (auto u : neighV)
-            {
-                // If a neighboring vertex has already been unencoded we can't unencode
-                if (unencodedVertices.find(u) != unencodedVertices.end()) continue; 
-            }
+            if (neighborUnencoded(v, L, unencodedVertices)) continue;
             unencodedVertices.insert(v);
             // qubitIndices
             auto faces = vertexToQubits[v];
@@ -670,7 +677,7 @@ void unencode(vsint &vertexToQubits, vpint &edgeToVertices, sint &unencodedVerti
             modifyVertexToQubits(vertexToQubits, vertexToEdgesL, localVertexMap, v, e, L);
             modifyEdgeToVertices(edgeToVertices, edgeToVerticesL, v, L, localVertexMap);
             modifyLogicalOperators(logicals, logicalOperatorMapX, e);
-            modifyLift(lift, logicalOperatorMapZ);
+            modifyLift(lift, logicalOperatorMapZ, e);
             e += 4;
         }
     }

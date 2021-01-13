@@ -139,7 +139,7 @@ vint reRoute(const int v1, const int v2, const int centralV, const int c, const 
     int w1, w2;
     for (auto const v : v1Neighbors)
     {
-        if (vertexColor(v, L) == c) continue;
+        if (vertexColor(v, L) == vertexColor(centralV, L)) continue; 
         auto vNeighbors = ccNeighbors(v, L);
         if (vNeighbors.find(centralV) != vNeighbors.end())
         {
@@ -242,7 +242,7 @@ sint findCorrection(const vint &excitations, const vpint &edgeToVertices, const 
                     // If r-edge in rgParing is from a g-face then add to corr, analogous for b case
                     if (c == cols[i]) correction.insert(e); 
                     // Get the new path connecting v1 and v2 and add to the edges to be changed
-                    auto newEdges = reRoute(v1, v2, cV, cols[i], L, vertexToEdges, edgeToVertices);
+                    auto newEdges = reRoute(v1, v2, cV, c, L, vertexToEdges, edgeToVertices);
                     for (auto const ne : newEdges)
                     {
                         changeEdges.push_back(ne);
@@ -276,6 +276,19 @@ sint findCorrection(const vint &excitations, const vpint &edgeToVertices, const 
         {
             paths.erase(std::find(paths.begin(), paths.end(), e));
         }
+    }
+    // Remove red vertices that are no longer in the pairing
+    sint pathVertices;
+    for (auto const e : paths)
+    {
+        auto vertices = edgeToVertices[e];
+        pathVertices.insert(vertices.first);
+        pathVertices.insert(vertices.second);
+    }
+    sint tmpRV = rVertices; // We don't want to change something whilst iterating through it
+    for (auto const v : tmpRV)
+    {
+        if (pathVertices.find(v) == pathVertices.end()) rVertices.erase(v);
     }
     // For each red vertex use localLift to find qubits to be added to correction
     for (auto const rv : rVertices)

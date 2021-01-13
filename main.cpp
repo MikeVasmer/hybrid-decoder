@@ -71,8 +71,9 @@ int main(int argc, char* argv[])
     auto start = std::chrono::high_resolution_clock::now(); 
 
     // Init rng
-    std::random_device rd{}; 
-    std::mt19937 engine{rd()};
+    // std::random_device rd{}; 
+    // std::mt19937 engine{rd()};
+    std::mt19937 engine{0}; // Deterministic seed for testing
     std::uniform_real_distribution<double> dist{0.0, 1.0};
     std::uniform_int_distribution<long long> bigDice{0, LLONG_MAX}; 
 

@@ -70,7 +70,7 @@ sint ccNeighbors(int v, int L);
 
 std::map<vint, vint> buildLift(int L, const vsint &vertexToFaces, const vvint &vertexToEdges, const vvint &faceToEdges);
 
-void modifyLift(std::map<vint, vint> &lift, const std::map<std::pair<int, int>, vint> &logicalOperatorMapZ);
+void modifyLift(std::map<vint, vint> &lift, const std::map<std::pair<int, int>, vint> &logicalOperatorMapZ, const int e);
 
 vvint combinationsUpToK(int n, int k);
 

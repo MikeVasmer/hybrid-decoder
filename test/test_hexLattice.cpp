@@ -715,3 +715,89 @@ TEST(buildLift, L18_problem)
     vint expectedQs = {27, 62};
     EXPECT_EQ(qs, expectedQs);
 }
+
+TEST(modifyLift, L6_correct_b_example)
+{
+    int L = 6;
+    auto vertexToQubits = buildVertexToFaces(L);
+    auto vertexToEdges = buildVertexToEdges(L);
+    auto faceToEdges = buildFaceToEdges(L);
+    auto lift = buildLift(L, vertexToQubits, vertexToEdges, faceToEdges);
+    auto liftCC = lift;
+    std::mt19937 engine;
+    vvint vertexToEdgesL;
+    vpint edgeToVerticesL;
+    vint localVertexMap;
+    std::map<std::pair<int, int>, std::vector<int>> logicalOperatorMapX;
+    std::map<std::pair<int, int>, std::vector<int>> logicalOperatorMapZ;
+    int e = 108;
+    int v = 15; // blue vertex to unencode
+    localUnencoding(vertexToEdgesL, edgeToVerticesL, localVertexMap, logicalOperatorMapX, logicalOperatorMapZ, v, L, engine, false); // Do the deterministic (0, 3) unencoding
+    modifyLift(lift, logicalOperatorMapZ, e);
+    // Changes expected at vertices 8, 16, and 21
+    // Vertex 21
+    vint edges = {44, 63};
+    vint expect = {e + 3};
+    EXPECT_NE(lift[edges], liftCC[edges]); // Should have changed
+    EXPECT_EQ(lift[edges], expect);
+    edges = {44, 65};
+    expect = {e + 3, 42};
+    EXPECT_NE(lift[edges], liftCC[edges]);
+    EXPECT_EQ(lift[edges], expect);
+    // Vertex 16
+    edges = {29, 49};
+    expect = {e + 2};
+    EXPECT_NE(lift[edges], liftCC[edges]);
+    EXPECT_EQ(lift[edges], expect);
+    // Vertex 8
+    edges = {24, 25};
+    expect = {e + 2, e + 3};
+    EXPECT_NE(lift[edges], liftCC[edges]);
+    EXPECT_EQ(lift[edges], expect);
+    // We can't know which ones have changed as for weight three errors there are two possible choices that could have been made in buildLift
+    // vvint changeKeys = {{44, 63}, {29, 49}, edges, 
+    //     {44, 65}, {60, 63},
+    //     {31, 49}, {29, 50},
+    //     {21, 24}, {7, 25}};
+    // for (auto const &item : lift)
+    // {
+    //     if (std::find(changeKeys.begin(), changeKeys.end(), item.first) != changeKeys.end()) continue;;
+    //     EXPECT_EQ(item.second, liftCC[item.first]);
+    // }
+}
+
+TEST(modifyLift, L6_correct_g_example)
+{
+    int L = 6;
+    auto vertexToQubits = buildVertexToFaces(L);
+    auto vertexToEdges = buildVertexToEdges(L);
+    auto faceToEdges = buildFaceToEdges(L);
+    auto lift = buildLift(L, vertexToQubits, vertexToEdges, faceToEdges);
+    auto liftCC = lift;
+    std::mt19937 engine;
+    vvint vertexToEdgesL;
+    vpint edgeToVerticesL;
+    vint localVertexMap;
+    std::map<std::pair<int, int>, std::vector<int>> logicalOperatorMapX;
+    std::map<std::pair<int, int>, std::vector<int>> logicalOperatorMapZ;
+    int e = 108;
+    int v = 27; // blue vertex to unencode
+    localUnencoding(vertexToEdgesL, edgeToVerticesL, localVertexMap, logicalOperatorMapX, logicalOperatorMapZ, v, L, engine, false); // Do the deterministic (0, 3) unencoding
+    modifyLift(lift, logicalOperatorMapZ, e);
+    // Changes expected at vertices 34, 26, and 21
+    // Vertex 21
+    vint edges = {60, 65};
+    vint expect = {e + 0};
+    EXPECT_NE(lift[edges], liftCC[edges]); // Should have changed
+    EXPECT_EQ(lift[edges], expect);
+    // Vertex 26
+    edges = {61, 80};
+    expect = {e + 1};
+    EXPECT_NE(lift[edges], liftCC[edges]);
+    EXPECT_EQ(lift[edges], expect);
+    // Vertex 34
+    edges = {85, 99};
+    expect = {e + 0, e + 1};
+    EXPECT_NE(lift[edges], liftCC[edges]);
+    EXPECT_EQ(lift[edges], expect);   
+}
