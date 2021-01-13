@@ -34,17 +34,17 @@ void calcSyndrome(vint &syndrome, const vsint &vertexToQubits, const vint &qubit
 }
 
 // Color c to exclude!
-void pairExcitations(const vint &excitations, const vpint &edgeToVertices, const vvint &vertexToEdges, color c, int L, vint &paths, vint &redVertices)
+void pairExcitations(const vint &excitations, const vpint &edgeToVertices, const vvint &vertexToEdges, color c, int L, vint &paths, vint &redVertices, std::map<vertex_descriptor, std::vector<vertex_descriptor>>& excitationToPaths, std::map<vertex_descriptor, vint>& excitationToDistances)
 {
-    graph_t g = buildGraph(edgeToVertices, c, L);
+    // graph_t g = buildGraph(edgeToVertices, c, L);
     vint restrictedExcitations;
     for (auto const e : excitations)
     {
         if (vertexColor(e, L) != c) restrictedExcitations.push_back(e);
     }
-    std::map<vertex_descriptor, std::vector<vertex_descriptor>> excitationToPaths;
-    std::map<vertex_descriptor, vint> excitationToDistances;
-    shortestPaths(g, excitationToPaths, excitationToDistances, restrictedExcitations);
+    // std::map<vertex_descriptor, std::vector<vertex_descriptor>> excitationToPaths;
+    // std::map<vertex_descriptor, vint> excitationToDistances;
+    // shortestPaths(g, excitationToPaths, excitationToDistances, restrictedExcitations);
     // Blossom V
     vint edges;
     vint weights;
@@ -197,13 +197,13 @@ vint reRoute(const int v1, const int v2, const int centralV, const int c, const 
     return newPath;
 }
 
-sint findCorrection(const vint &excitations, const vpint &edgeToVertices, const vvint &vertexToEdges, int L, const std::map<vint, vint> &lift, const sint &unencodedVertices)
+sint findCorrection(const vint &excitations, const vpint &edgeToVertices, const vvint &vertexToEdges, int L, const std::map<vint, vint> &lift, const sint &unencodedVertices, std::map<vertex_descriptor, std::vector<vertex_descriptor>>& excitationToPathsRG, std::map<vertex_descriptor, vint>& excitationToDistancesRG, std::map<vertex_descriptor, std::vector<vertex_descriptor>>& excitationToPathsRB, std::map<vertex_descriptor, vint>& excitationToDistancesRB)
 {
     vint rgPaths, rbPaths, rgVertices, rbVertices;
     sint correction;
     // Compute matchings using pairExcitations 
-    pairExcitations(excitations, edgeToVertices, vertexToEdges, b, L, rgPaths, rgVertices);
-    pairExcitations(excitations, edgeToVertices, vertexToEdges, g, L, rbPaths, rbVertices);
+    pairExcitations(excitations, edgeToVertices, vertexToEdges, b, L, rgPaths, rgVertices, excitationToPathsRG, excitationToDistancesRG);
+    pairExcitations(excitations, edgeToVertices, vertexToEdges, g, L, rbPaths, rbVertices, excitationToPathsRB, excitationToDistancesRB);
     // Process matchings
     vvint pathTup = {rgPaths, rbPaths};
     vint cols = {g, b};

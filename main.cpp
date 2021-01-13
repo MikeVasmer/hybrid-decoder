@@ -8,12 +8,12 @@
 
 
 // Returns true (1) if EC successful, false (0) if not
-bool oneRun(vint &qubits, const sint &qubitIndices, double errorP, std::mt19937 &engine, std::uniform_real_distribution<double> &dist, const vsint &vertexToQubits, const vpint &edgeToVertices, const vvint &vertexToEdges, const std::map<vint, vint> &lift, vsint &logicals, const sint &unencodedVertices, int L)
+bool oneRun(vint &qubits, const sint &qubitIndices, double errorP, std::mt19937 &engine, std::uniform_real_distribution<double> &dist, const vsint &vertexToQubits, const vpint &edgeToVertices, const vvint &vertexToEdges, const std::map<vint, vint> &lift, vsint &logicals, const sint &unencodedVertices, int L, std::map<vertex_descriptor, std::vector<vertex_descriptor>>& excitationToPathsRG, std::map<vertex_descriptor, vint>& excitationToDistancesRG, std::map<vertex_descriptor, std::vector<vertex_descriptor>>& excitationToPathsRB, std::map<vertex_descriptor, vint>& excitationToDistancesRB)
 {
     generateError(qubits, qubitIndices, errorP, engine, dist);
     vint excitations;
     calcSyndrome(excitations, vertexToQubits, qubits, unencodedVertices, L);
-    auto correction = findCorrection(excitations, edgeToVertices, vertexToEdges, L, lift, unencodedVertices);
+    auto correction = findCorrection(excitations, edgeToVertices, vertexToEdges, L, lift, unencodedVertices, excitationToPathsRG, excitationToDistancesRG, excitationToPathsRB, excitationToDistancesRB);
     for (auto q : correction)
     {
         qubits[q] = (qubits[q] + 1) % 2;
@@ -71,9 +71,9 @@ int main(int argc, char* argv[])
     auto start = std::chrono::high_resolution_clock::now(); 
 
     // Init rng
-    // std::random_device rd{}; 
-    // std::mt19937 engine{rd()};
-    std::mt19937 engine{0}; // Deterministic seed for testing
+    std::random_device rd{}; 
+    std::mt19937 engine{rd()};
+    // std::mt19937 engine{0}; // Deterministic seed for testing
     std::uniform_real_distribution<double> dist{0.0, 1.0};
     std::uniform_int_distribution<long long> bigDice{0, LLONG_MAX}; 
 
@@ -90,6 +90,27 @@ int main(int argc, char* argv[])
     sint unencodedVertices, qubitIndices;
     vint qubits;
     unencode(vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, unencodingP, engine, dist, randomizeUnencoding, rOnly, lift);
+    // Compute paths and distances
+    graph_t gr = buildGraph(edgeToVertices, b, L);
+    std::map<vertex_descriptor, std::vector<vertex_descriptor>> excitationToPathsRG;
+    std::map<vertex_descriptor, vint> excitationToDistancesRG;
+    vint vertices(L * L);
+    std::iota (std::begin(vertices), std::end(vertices), 0); // Populate with 0, 1, ..., (L * L) - 1
+    vint verticesRG;
+    for (auto const v : vertices)
+    {
+        if (vertexColor(v, L) != b) verticesRG.push_back(v);
+    }
+    shortestPaths(gr, excitationToPathsRG, excitationToDistancesRG, verticesRG);
+    gr = buildGraph(edgeToVertices, g, L);
+    std::map<vertex_descriptor, std::vector<vertex_descriptor>> excitationToPathsRB;
+    std::map<vertex_descriptor, vint> excitationToDistancesRB;
+    vint verticesRB;
+    for (auto const v : vertices)
+    {
+        if (vertexColor(v, L) != g) verticesRB.push_back(v);
+    }
+    shortestPaths(gr, excitationToPathsRB, excitationToDistancesRB, verticesRB);
     
     // Save lattice
     // Random number as a file name
@@ -109,7 +130,7 @@ int main(int argc, char* argv[])
     int t = 0;
     while (t < trials)
     {
-        fails += !oneRun(qubits, qubitIndices, errorP, engine, dist, vertexToQubits, edgeToVertices, vertexToEdges, lift, logicals, unencodedVertices, L);
+        fails += !oneRun(qubits, qubitIndices, errorP, engine, dist, vertexToQubits, edgeToVertices, vertexToEdges, lift, logicals, unencodedVertices, L, excitationToPathsRG, excitationToDistancesRG, excitationToPathsRB, excitationToDistancesRB);
         ++t;
         double pfail = fails / t;
         double err = sqrt(pfail * (1-pfail) / t);

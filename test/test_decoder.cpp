@@ -195,11 +195,31 @@ TEST(pairExcitations, no_unencoding)
     int L = 6;
     auto edgeToVertices = buildEdgeToVertices(L);
     auto vertexToEdges = buildVertexToEdges(L);
+    graph_t gr = buildGraph(edgeToVertices, b, L);
+    std::map<vertex_descriptor, std::vector<vertex_descriptor>> excitationToPathsRG;
+    std::map<vertex_descriptor, vint> excitationToDistancesRG;
+    vint vertices(L * L);
+    std::iota (std::begin(vertices), std::end(vertices), 0); // Populate with 0, 1, ..., (L * L) - 1
+    vint verticesRG;
+    for (auto const v : vertices)
+    {
+        if (vertexColor(v, L) != b) verticesRG.push_back(v);
+    }
+    shortestPaths(gr, excitationToPathsRG, excitationToDistancesRG, verticesRG);
+    gr = buildGraph(edgeToVertices, g, L);
+    std::map<vertex_descriptor, std::vector<vertex_descriptor>> excitationToPathsRB;
+    std::map<vertex_descriptor, vint> excitationToDistancesRB;
+    vint verticesRB;
+    for (auto const v : vertices)
+    {
+        if (vertexColor(v, L) != g) verticesRB.push_back(v);
+    }
+    shortestPaths(gr, excitationToPathsRB, excitationToDistancesRB, verticesRB);
     vint paths, redVertices;
     // r-r
     vint excitations = {16, 26};
     color c = b; 
-    pairExcitations(excitations, edgeToVertices, vertexToEdges, c, L, paths, redVertices);
+    pairExcitations(excitations, edgeToVertices, vertexToEdges, c, L, paths, redVertices, excitationToPathsRG, excitationToDistancesRG);
     std::sort(paths.begin(), paths.end());
     vint expectedPath = {49, 63, 64, 78};
     EXPECT_EQ(paths, expectedPath);
@@ -208,7 +228,7 @@ TEST(pairExcitations, no_unencoding)
     c = g;
     paths = {};
     redVertices = {};
-    pairExcitations(excitations, edgeToVertices, vertexToEdges, c, L, paths, redVertices);
+    pairExcitations(excitations, edgeToVertices, vertexToEdges, c, L, paths, redVertices, excitationToPathsRB, excitationToDistancesRB);
     std::sort(paths.begin(), paths.end());
     expectedPath = {50, 56, 69, 75};
     EXPECT_EQ(paths, expectedPath);
@@ -219,7 +239,7 @@ TEST(pairExcitations, no_unencoding)
     c = b;
     paths = {};
     redVertices = {};
-    pairExcitations(excitations, edgeToVertices, vertexToEdges, c, L, paths, redVertices);
+    pairExcitations(excitations, edgeToVertices, vertexToEdges, c, L, paths, redVertices, excitationToPathsRG, excitationToDistancesRG);
     std::sort(paths.begin(), paths.end());
     expectedPath = {9, 10};
     EXPECT_EQ(paths, expectedPath);
@@ -228,7 +248,7 @@ TEST(pairExcitations, no_unencoding)
     c = g;
     paths = {};
     redVertices = {};
-    pairExcitations(excitations, edgeToVertices, vertexToEdges, c, L, paths, redVertices);
+    pairExcitations(excitations, edgeToVertices, vertexToEdges, c, L, paths, redVertices, excitationToPathsRB, excitationToDistancesRB);
     std::sort(paths.begin(), paths.end());
     expectedPath = {7, 21};
     EXPECT_EQ(paths, expectedPath);
@@ -239,7 +259,7 @@ TEST(pairExcitations, no_unencoding)
     c = b;
     paths = {};
     redVertices = {};
-    pairExcitations(excitations, edgeToVertices, vertexToEdges, c, L, paths, redVertices);
+    pairExcitations(excitations, edgeToVertices, vertexToEdges, c, L, paths, redVertices, excitationToPathsRG, excitationToDistancesRG);
     std::sort(paths.begin(), paths.end());
     expectedPath = {74};
     EXPECT_EQ(paths, expectedPath);
@@ -248,7 +268,7 @@ TEST(pairExcitations, no_unencoding)
     c = g;
     paths = {};
     redVertices = {};
-    pairExcitations(excitations, edgeToVertices, vertexToEdges, c, L, paths, redVertices);
+    pairExcitations(excitations, edgeToVertices, vertexToEdges, c, L, paths, redVertices, excitationToPathsRB, excitationToDistancesRB);
     std::sort(paths.begin(), paths.end());
     expectedPath = {90};
     EXPECT_EQ(paths, expectedPath);
@@ -270,11 +290,31 @@ TEST(pairExcitations, fully_unencoded)
     auto faceToEdges = buildFaceToEdges(L);
     auto lift = buildLift(L, vertexToQubits, vertexToEdges, faceToEdges);
     unencode(vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, p, engine, dist, false, true, lift);
+    graph_t gr = buildGraph(edgeToVertices, b, L);
+    std::map<vertex_descriptor, std::vector<vertex_descriptor>> excitationToPathsRG;
+    std::map<vertex_descriptor, vint> excitationToDistancesRG;
+    vint vertices(L * L);
+    std::iota (std::begin(vertices), std::end(vertices), 0); // Populate with 0, 1, ..., (L * L) - 1
+    vint verticesRG;
+    for (auto const v : vertices)
+    {
+        if (vertexColor(v, L) != b) verticesRG.push_back(v);
+    }
+    shortestPaths(gr, excitationToPathsRG, excitationToDistancesRG, verticesRG);
+    gr = buildGraph(edgeToVertices, g, L);
+    std::map<vertex_descriptor, std::vector<vertex_descriptor>> excitationToPathsRB;
+    std::map<vertex_descriptor, vint> excitationToDistancesRB;
+    vint verticesRB;
+    for (auto const v : vertices)
+    {
+        if (vertexColor(v, L) != g) verticesRB.push_back(v);
+    }
+    shortestPaths(gr, excitationToPathsRB, excitationToDistancesRB, verticesRB);
     // b-b & g-g
     vint excitations = {25, 33, 14, 22};
     vint paths, redVertices;
     color c = b; 
-    pairExcitations(excitations, edgeToVertices, vertexToEdges, c, L, paths, redVertices);
+    pairExcitations(excitations, edgeToVertices, vertexToEdges, c, L, paths, redVertices, excitationToPathsRG, excitationToDistancesRG);
     std::sort(paths.begin(), paths.end());
     vint expectedPath = {136};
     EXPECT_EQ(paths, expectedPath);
@@ -282,7 +322,7 @@ TEST(pairExcitations, fully_unencoded)
     c = g;
     paths = {};
     redVertices = {};
-    pairExcitations(excitations, edgeToVertices, vertexToEdges, c, L, paths, redVertices);
+    pairExcitations(excitations, edgeToVertices, vertexToEdges, c, L, paths, redVertices, excitationToPathsRB, excitationToDistancesRB);
     std::sort(paths.begin(), paths.end());
     expectedPath = {143};
     EXPECT_EQ(paths, expectedPath);
@@ -299,22 +339,42 @@ TEST(findCorrection, no_unencoding)
     for (int i = 0; i < 2 * L * L; ++i) qubitIndices.insert(i);
     auto faceToEdges = buildFaceToEdges(L);
     auto lift = buildLift(L, vertexToQubits, vertexToEdges, faceToEdges);
+    graph_t gr = buildGraph(edgeToVertices, b, L);
+    std::map<vertex_descriptor, std::vector<vertex_descriptor>> excitationToPathsRG;
+    std::map<vertex_descriptor, vint> excitationToDistancesRG;
+    vint vertices(L * L);
+    std::iota (std::begin(vertices), std::end(vertices), 0); // Populate with 0, 1, ..., (L * L) - 1
+    vint verticesRG;
+    for (auto const v : vertices)
+    {
+        if (vertexColor(v, L) != b) verticesRG.push_back(v);
+    }
+    shortestPaths(gr, excitationToPathsRG, excitationToDistancesRG, verticesRG);
+    gr = buildGraph(edgeToVertices, g, L);
+    std::map<vertex_descriptor, std::vector<vertex_descriptor>> excitationToPathsRB;
+    std::map<vertex_descriptor, vint> excitationToDistancesRB;
+    vint verticesRB;
+    for (auto const v : vertices)
+    {
+        if (vertexColor(v, L) != g) verticesRB.push_back(v);
+    }
+    shortestPaths(gr, excitationToPathsRB, excitationToDistancesRB, verticesRB);
 
     // one qubit error
     vint excitations = {24, 30, 31};
-    auto outCorr = findCorrection(excitations, edgeToVertices, vertexToEdges, L, lift, unencodedVertices);
+    auto outCorr = findCorrection(excitations, edgeToVertices, vertexToEdges, L, lift, unencodedVertices, excitationToPathsRG, excitationToDistancesRG, excitationToPathsRB, excitationToDistancesRB);
     sint expectedCorr = {49};
     EXPECT_EQ(outCorr, expectedCorr);
 
     // 2x two qubit errors 
     excitations = {2, 7, 4, 9};
-    outCorr = findCorrection(excitations, edgeToVertices, vertexToEdges, L, lift, unencodedVertices);
+    outCorr = findCorrection(excitations, edgeToVertices, vertexToEdges, L, lift, unencodedVertices, excitationToPathsRG, excitationToDistancesRG, excitationToPathsRB, excitationToDistancesRB);
     expectedCorr = {2, 3, 6, 7};
     EXPECT_EQ(outCorr, expectedCorr);
 
     // multi-qubit error
     excitations = {16, 26};
-    outCorr = findCorrection(excitations, edgeToVertices, vertexToEdges, L, lift, unencodedVertices);
+    outCorr = findCorrection(excitations, edgeToVertices, vertexToEdges, L, lift, unencodedVertices, excitationToPathsRG, excitationToDistancesRG, excitationToPathsRB, excitationToDistancesRB);
     expectedCorr = {33, 37, 38, 39, 41, 42, 43, 46};
     EXPECT_EQ(outCorr, expectedCorr);
 }
@@ -333,10 +393,30 @@ TEST(findCorrection, full_unencode)
     auto faceToEdges = buildFaceToEdges(L);
     auto lift = buildLift(L, vertexToQubits, vertexToEdges, faceToEdges);
     unencode(vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, p, engine, dist, false, true, lift);
+    graph_t gr = buildGraph(edgeToVertices, b, L);
+    std::map<vertex_descriptor, std::vector<vertex_descriptor>> excitationToPathsRG;
+    std::map<vertex_descriptor, vint> excitationToDistancesRG;
+    vint vertices(L * L);
+    std::iota (std::begin(vertices), std::end(vertices), 0); // Populate with 0, 1, ..., (L * L) - 1
+    vint verticesRG;
+    for (auto const v : vertices)
+    {
+        if (vertexColor(v, L) != b) verticesRG.push_back(v);
+    }
+    shortestPaths(gr, excitationToPathsRG, excitationToDistancesRG, verticesRG);
+    gr = buildGraph(edgeToVertices, g, L);
+    std::map<vertex_descriptor, std::vector<vertex_descriptor>> excitationToPathsRB;
+    std::map<vertex_descriptor, vint> excitationToDistancesRB;
+    vint verticesRB;
+    for (auto const v : vertices)
+    {
+        if (vertexColor(v, L) != g) verticesRB.push_back(v);
+    }
+    shortestPaths(gr, excitationToPathsRB, excitationToDistancesRB, verticesRB);
 
     // 2x one qubit errors (b and g)
     vint excitations = {15, 23, 19, 32};
-    auto outCorr = findCorrection(excitations, edgeToVertices, vertexToEdges, L, lift, unencodedVertices);
+    auto outCorr = findCorrection(excitations, edgeToVertices, vertexToEdges, L, lift, unencodedVertices, excitationToPathsRG, excitationToDistancesRG, excitationToPathsRB, excitationToDistancesRB);
     sint expectedCorr = {131, 141};
     EXPECT_EQ(outCorr, expectedCorr);
 }
