@@ -52,18 +52,26 @@ vpint buildEdgeToVertices(int L);
 
 vsint buildLogicals(int L);
 
-void localUnencoding(vvint &vertexToEdgesLocal, vpint &edgeToVerticesLocal, vint &localVertexMap, std::map<std::pair<int, int>, std::vector<int>> &logicalOperatorMap, int v, int L);
+void localUnencoding(vvint &vertexToEdgesLocal, vpint &edgeToVerticesLocal, vint &localVertexMap, std::map<std::pair<int, int>, vint> &logicalOperatorMapX, std::map<std::pair<int, int>, vint> &logicalOperatorMapZ, int v, int L, std::mt19937 &engine, bool random);
 
 void modifyVertexToQubits(vsint &vertexToQubits, const vvint &vertexToEdgesL, const vint &localVertexMap, int v, int e, int L);
 
 void modifyEdgeToVertices(vpint &edgeToVerticesU, const vpint &edgeToVerticesL, int v, int L, const vint &localVerticesMap);
 
-void modifyLogicalOperators(vsint &logicals, const std::map<std::pair<int, int>, std::vector<int>> &logicalOperatorMap, int e);
+void modifyLogicalOperators(vsint &logicals, const std::map<std::pair<int, int>, vint> &logicalOperatorMap, int e);
 
 void removeRedundantEdges(vpint &edgeToVertices, const sint &qubitIndices, const vpint &edgeToFaces, int L);
 
-void unencode(vsint &vertexToQubits, vpint &edgeToVertices, sint &unencodedVertices, sint &qubitIndices, vint &qubits, vsint& logicals, const vpint &edgeToFaces, vvint &vertexToEdges, int L, double p, std::mt19937& engine, std::uniform_real_distribution<double>& dist);
+void unencode(vsint &vertexToQubits, vpint &edgeToVertices, sint &unencodedVertices, sint &qubitIndices, vint &qubits, vsint& logicals, const vpint &edgeToFaces, vvint &vertexToEdges, int L, double p, std::mt19937& engine, std::uniform_real_distribution<double>& dist, bool randomizeUnencoding, bool rOnly, std::map<vint, vint> &lift);
 
 int pairToEdge(int v, int u, const vvint &vertexToEdges, const vpint &edgeToVertices);
+
+sint ccNeighbors(int v, int L);
+
+std::map<vint, vint> buildLift(int L, const vsint &vertexToFaces, const vvint &vertexToEdges, const vvint &faceToEdges);
+
+void modifyLift(std::map<vint, vint> &lift, const std::map<std::pair<int, int>, vint> &logicalOperatorMapZ, const int e);
+
+vvint combinationsUpToK(int n, int k);
 
 #endif

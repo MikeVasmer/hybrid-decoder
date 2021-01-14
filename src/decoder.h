@@ -9,18 +9,16 @@ void calcSyndrome(vint &syndrome, const vsint &vertexToQubits, const vint &qubit
 
 void generateError(vint &qubits, const sint &qubitIndices, double p, std::mt19937 &engine, std::uniform_real_distribution<double> &dist);
 
-vvint combinationsUpToK(int n, int k);
-
-std::map<vint, vint> buildLift(int L, const vsint &vertexToQubits, const sint &unencodedVertices, const vvint &vertexToEdges, const sint &qubitIndices, const vvint &faceToEdges);
-
 vint binToList(vint &bin);
 
 vint localLift(int v, int L, const vint &paths, const vvint &vertexToEdges, const std::map<vint, vint> &lift);
 
-void pairExcitations(const vint &excitations, const vpint &edgeToVertices, const vvint &vertexToEdges, color c, int L, vint &paths, vint &redVertices);
+void pairExcitations(const vint &excitations, const vpint &edgeToVertices, const vvint &vertexToEdges, color c, int L, vint &paths, vint &redVertices, std::map<vertex_descriptor, std::vector<vertex_descriptor>>& excitationToPaths, std::map<vertex_descriptor, vint>& excitationToDistances);
 
-vint findCorrection(const vint &excitations, const vpint &edgeToVertices, const vvint &vertexToEdges, int L, const std::map<vint, vint> &lift);
+sint findCorrection(const vint &excitations, const vpint &edgeToVertices, const vvint &vertexToEdges, int L, const std::map<vint, vint> &lift, const sint &unencodedVertices, std::map<vertex_descriptor, std::vector<vertex_descriptor>>& excitationToPathsRG, std::map<vertex_descriptor, vint>& excitationToDistancesRG, std::map<vertex_descriptor, std::vector<vertex_descriptor>>& excitationToPathsRB, std::map<vertex_descriptor, vint>& excitationToDistancesRB);
 
 bool checkCommutation(vint &qubits, vsint &logicals);
+
+vint reRoute(const int v1, const int v2, const int centralV, const int c, const int L, const vvint &vertexToEdges, const vpint &edgeToVertices);
 
 #endif

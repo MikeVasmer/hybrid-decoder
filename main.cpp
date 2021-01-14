@@ -8,12 +8,12 @@
 
 
 // Returns true (1) if EC successful, false (0) if not
-bool oneRun(vint &qubits, const sint &qubitIndices, double errorP, std::mt19937 &engine, std::uniform_real_distribution<double> &dist, const vsint &vertexToQubits, const vpint &edgeToVertices, const vvint &vertexToEdges, const std::map<vint, vint> &lift, vsint &logicals, const sint &unencodedVertices, int L)
+bool oneRun(vint &qubits, const sint &qubitIndices, double errorP, std::mt19937 &engine, std::uniform_real_distribution<double> &dist, const vsint &vertexToQubits, const vpint &edgeToVertices, const vvint &vertexToEdges, const std::map<vint, vint> &lift, vsint &logicals, const sint &unencodedVertices, int L, std::map<vertex_descriptor, std::vector<vertex_descriptor>>& excitationToPathsRG, std::map<vertex_descriptor, vint>& excitationToDistancesRG, std::map<vertex_descriptor, std::vector<vertex_descriptor>>& excitationToPathsRB, std::map<vertex_descriptor, vint>& excitationToDistancesRB)
 {
     generateError(qubits, qubitIndices, errorP, engine, dist);
     vint excitations;
     calcSyndrome(excitations, vertexToQubits, qubits, unencodedVertices, L);
-    auto correction = findCorrection(excitations, edgeToVertices, vertexToEdges, L, lift);
+    auto correction = findCorrection(excitations, edgeToVertices, vertexToEdges, L, lift, unencodedVertices, excitationToPathsRG, excitationToDistancesRG, excitationToPathsRB, excitationToDistancesRB);
     for (auto q : correction)
     {
         qubits[q] = (qubits[q] + 1) % 2;
@@ -55,8 +55,12 @@ int main(int argc, char* argv[])
     int L = atoi(argv[1]);
     double unencodingP = atof(argv[2]);
     double errorP = atof(argv[3]);
-    int trials = atoi(argv[4]);
-    int job = atoi(argv[5]);
+    bool randomizeUnencoding;
+    std::stringstream ss(argv[4]);
+    if (!(ss >> std::boolalpha >> randomizeUnencoding)) throw std::invalid_argument("Problem with randomizeUnencoding.");
+    int trials = atoi(argv[5]);
+    int job = atoi(argv[6]);
+    bool rOnly = false;
 
     // Parameter checks
     if (L % 3 != 0 || L <= 0) throw std::invalid_argument("L must be a positive multiple of three.");
@@ -69,6 +73,7 @@ int main(int argc, char* argv[])
     // Init rng
     std::random_device rd{}; 
     std::mt19937 engine{rd()};
+    // std::mt19937 engine{0}; // Deterministic seed for testing
     std::uniform_real_distribution<double> dist{0.0, 1.0};
     std::uniform_int_distribution<long long> bigDice{0, LLONG_MAX}; 
 
@@ -78,14 +83,35 @@ int main(int argc, char* argv[])
     auto vertexToEdges = buildVertexToEdges(L);
     auto edgeToFaces = buildEdgeToFaces(L);
     auto logicals = buildLogicals(L);
+    // Build Lift
+    auto faceToEdges = buildFaceToEdges(L);
+    auto lift = buildLift(L, vertexToQubits, vertexToEdges, faceToEdges);
     // Unencode
     sint unencodedVertices, qubitIndices;
     vint qubits;
-    unencode(vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, unencodingP, engine, dist);
-    // Build Lift
-    auto faceToEdges = buildFaceToEdges(L);
-    auto lift = buildLift(L, vertexToQubits, unencodedVertices, vertexToEdges, qubitIndices, faceToEdges);
-
+    unencode(vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, unencodingP, engine, dist, randomizeUnencoding, rOnly, lift);
+    // Compute paths and distances
+    graph_t gr = buildGraph(edgeToVertices, b, L);
+    std::map<vertex_descriptor, std::vector<vertex_descriptor>> excitationToPathsRG;
+    std::map<vertex_descriptor, vint> excitationToDistancesRG;
+    vint vertices(L * L);
+    std::iota (std::begin(vertices), std::end(vertices), 0); // Populate with 0, 1, ..., (L * L) - 1
+    vint verticesRG;
+    for (auto const v : vertices)
+    {
+        if (vertexColor(v, L) != b) verticesRG.push_back(v);
+    }
+    shortestPaths(gr, excitationToPathsRG, excitationToDistancesRG, verticesRG);
+    gr = buildGraph(edgeToVertices, g, L);
+    std::map<vertex_descriptor, std::vector<vertex_descriptor>> excitationToPathsRB;
+    std::map<vertex_descriptor, vint> excitationToDistancesRB;
+    vint verticesRB;
+    for (auto const v : vertices)
+    {
+        if (vertexColor(v, L) != g) verticesRB.push_back(v);
+    }
+    shortestPaths(gr, excitationToPathsRB, excitationToDistancesRB, verticesRB);
+    
     // Save lattice
     // Random number as a file name
     auto rand = bigDice(engine);
@@ -104,7 +130,7 @@ int main(int argc, char* argv[])
     int t = 0;
     while (t < trials)
     {
-        fails += !oneRun(qubits, qubitIndices, errorP, engine, dist, vertexToQubits, edgeToVertices, vertexToEdges, lift, logicals, unencodedVertices, L);
+        fails += !oneRun(qubits, qubitIndices, errorP, engine, dist, vertexToQubits, edgeToVertices, vertexToEdges, lift, logicals, unencodedVertices, L, excitationToPathsRG, excitationToDistancesRG, excitationToPathsRB, excitationToDistancesRB);
         ++t;
         double pfail = fails / t;
         double err = sqrt(pfail * (1-pfail) / t);
@@ -124,10 +150,11 @@ int main(int argc, char* argv[])
         + "lat=" + std::to_string(rand) + ".csv";
     std::ofstream file(path);
     // L, error p, unencoding p, trials, fails, job
-    file << "L,uP,eP,trials,fails,runtime(s),job" << std::endl;
+    file << "L,uP,eP,randomU,trials,fails,runtime(s),job" << std::endl;
     file << std::to_string(L) << ","
         << std::to_string(unencodingP) << ","
         << std::to_string(errorP) << ","
+        << std::to_string(randomizeUnencoding) << ","
         << std::to_string(t) << ","
         << std::to_string(fails) << ","
         << std::to_string(duration.count()) << ","

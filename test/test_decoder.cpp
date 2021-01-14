@@ -69,7 +69,9 @@ TEST(calcSyndrome, expected_behaviour_full_unencoding)
     auto edgeToFaces = buildEdgeToFaces(L);
     vint qubits;
     double p = 1.0;
-    unencode(vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, p, engine, dist);
+    auto faceToEdges = buildFaceToEdges(L);
+    auto lift = buildLift(L, vertexToQubits, vertexToEdges, faceToEdges);
+    unencode(vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, p, engine, dist, false, true, lift);
     // vint syndrome(L * L, 0);
     vint syndrome;
     // Errors on CC qubits should have no effect
@@ -134,67 +136,6 @@ TEST(calcSyndrome, expected_behaviour_full_unencoding)
     }
 }
 
-// pairExcitations
-
-TEST(combinationsUpToK, expected_output)
-{
-    int n = 6;
-    int k = 3;
-    auto combs = combinationsUpToK(n, k);
-    vvint expectedOut = {
-        {0},
-        {1},
-        {2},
-        {3},
-        {4},
-        {5},
-        {0, 1},
-        {0, 2},
-        {0, 3},
-        {0, 4},
-        {0, 5},
-        {1, 2},
-        {1, 3},
-        {1, 4},
-        {1, 5},
-        {2, 3},
-        {2, 4},
-        {2, 5},
-        {3, 4},
-        {3, 5},
-        {4, 5},
-        {0, 1, 2},
-        {0, 1, 3},
-        {0, 1, 4},
-        {0, 1, 5},
-        {0, 2, 3},
-        {0, 2, 4},
-        {0, 2, 5},
-        {0, 3, 4},
-        {0, 3, 5},
-        {0, 4, 5},
-        {1, 2, 3},
-        {1, 2, 4},
-        {1, 2, 5},
-        {1, 3, 4},
-        {1, 3, 5},
-        {1, 4, 5},
-        {2, 3, 4},
-        {2, 3, 5},
-        {2, 4, 5},
-        {3, 4, 5},
-    };
-    // for (auto comb : combs)
-    // {
-    //     for (auto c : comb)
-    //     {
-    //         std::cerr << c << " ";
-    //     }
-    //     std::cerr << std::endl;
-    // }
-    EXPECT_EQ(combs, expectedOut);
-}
-
 TEST(binToList, expected_behaviour)
 {
     vint bin(10, 0);
@@ -206,154 +147,6 @@ TEST(binToList, expected_behaviour)
     EXPECT_EQ(list, expectedOut);
 }
 
-TEST(buildLift, expected_output_L6)
-{
-    int L = 6;
-    auto vertexToQubits = buildVertexToFaces(L);
-    sint unencodedVertices;
-    auto vertexToEdges = buildVertexToEdges(L);
-    sint qubitIndices;
-    for (int i = 0; i < 2 * L * L; ++i) qubitIndices.insert(i);
-    auto faceToEdges = buildFaceToEdges(L);
-    auto lift = buildLift(L, vertexToQubits, unencodedVertices, vertexToEdges, qubitIndices, faceToEdges);
-    // std::cerr << lift.size() << std::endl;
-    // for (auto it = lift.begin(); it != lift.end(); ++it)
-    // {
-    //     auto edges = it->first;
-    //     auto error = it->second;
-    //     std::cerr << "Edges : ";
-    //     for (auto e : edges) std::cerr << e << " ";
-    //     std::cerr << ", Error : ";
-    //     for (auto e : error) std::cerr << e << " ";
-    //     std::cerr << std::endl;
-    // }
-
-    // Vertex (5, 1) = 11
-    // Single qubit errors
-    vint expectedQs = {9};
-    vint edges = {14, 30};
-    EXPECT_EQ(lift[edges], expectedQs);
-    expectedQs = {8};
-    edges = {14, 16};
-    EXPECT_EQ(lift[edges], expectedQs);
-    expectedQs = {11};
-    edges = {16, 33};
-    EXPECT_EQ(lift[edges], expectedQs);
-    expectedQs = {20};
-    edges = {30, 34};
-    EXPECT_EQ(lift[edges], expectedQs);
-    expectedQs = {22};
-    edges = {33, 35};
-    EXPECT_EQ(lift[edges], expectedQs);
-    expectedQs = {23};
-    edges = {34, 35};
-    EXPECT_EQ(lift[edges], expectedQs);
-    // Two qubit errors
-    expectedQs = {8, 9};
-    edges = {16, 30};
-    EXPECT_EQ(lift[edges], expectedQs);
-    expectedQs = {9, 11};
-    edges = {14, 16, 30, 33};
-    EXPECT_EQ(lift[edges], expectedQs);
-    expectedQs = {9, 20};
-    edges = {14, 34};
-    EXPECT_EQ(lift[edges], expectedQs);
-    expectedQs = {9, 22};
-    edges = {14, 30, 33, 35};
-    EXPECT_EQ(lift[edges], expectedQs);
-    expectedQs = {9, 23};
-    edges = {14, 30, 34, 35};
-    EXPECT_EQ(lift[edges], expectedQs);
-    expectedQs = {8, 11};
-    edges = {14, 33};
-    EXPECT_EQ(lift[edges], expectedQs);
-    expectedQs = {8, 20};
-    edges = {14, 16, 30, 34};
-    EXPECT_EQ(lift[edges], expectedQs);
-    expectedQs = {8, 22};
-    edges = {14, 16, 33, 35};
-    EXPECT_EQ(lift[edges], expectedQs);
-    expectedQs = {8, 23};
-    edges = {14, 16, 34, 35};
-    EXPECT_EQ(lift[edges], expectedQs);
-    expectedQs = {11, 20};
-    edges = {16, 30, 33, 34};
-    EXPECT_EQ(lift[edges], expectedQs);
-    expectedQs = {11, 22};
-    edges = {16, 35};
-    EXPECT_EQ(lift[edges], expectedQs);
-    expectedQs = {11, 23};
-    edges = {16, 33, 34, 35};
-    EXPECT_EQ(lift[edges], expectedQs);
-    expectedQs = {20, 22};
-    edges = {30, 33, 34, 35};
-    EXPECT_EQ(lift[edges], expectedQs);
-    expectedQs = {20, 23};
-    edges = {30, 35};
-    EXPECT_EQ(lift[edges], expectedQs);
-    expectedQs = {22, 23};
-    edges = {33, 34};
-    EXPECT_EQ(lift[edges], expectedQs);
-    // Three qubit errors
-    expectedQs = {8, 9, 11};
-    vint expectedQsAlt = {20, 22, 23}; // The same up to stabilizer
-    edges = {30, 33};
-    EXPECT_TRUE(lift[edges] == expectedQs || lift[edges] == expectedQsAlt);
-    expectedQs = {8, 9, 20};
-    expectedQsAlt = {11, 22, 23};
-    edges = {16, 34};
-    EXPECT_TRUE(lift[edges] == expectedQs || lift[edges] == expectedQsAlt);
-    expectedQs = {8, 9, 22};
-    expectedQsAlt = {11, 20, 23};
-    edges = {16, 30, 33, 35};
-    EXPECT_TRUE(lift[edges] == expectedQs || lift[edges] == expectedQsAlt);
-    expectedQs = {8, 9, 23};
-    expectedQsAlt = {11, 20, 22};
-    edges = {16, 30, 34, 35};
-    EXPECT_TRUE(lift[edges] == expectedQs || lift[edges] == expectedQsAlt);
-    expectedQs = {8, 11, 20};
-    expectedQsAlt = {9, 22, 23};
-    edges = {14, 30, 33, 34};
-    EXPECT_TRUE(lift[edges] == expectedQs || lift[edges] == expectedQsAlt);
-    expectedQs = {8, 11, 22};
-    expectedQsAlt = {9, 20, 23};
-    edges = {14, 35};
-    EXPECT_TRUE(lift[edges] == expectedQs || lift[edges] == expectedQsAlt);
-    expectedQs = {8, 11, 23};
-    expectedQsAlt = {9, 20, 22};
-    edges = {14, 33, 34, 35};
-    EXPECT_TRUE(lift[edges] == expectedQs || lift[edges] == expectedQsAlt);
-    expectedQs = {8, 20, 22};
-    expectedQsAlt = {9, 11, 23};
-    edges = {14, 16, 30, 33, 34, 35};
-    EXPECT_TRUE(lift[edges] == expectedQs || lift[edges] == expectedQsAlt);
-    expectedQs = {8, 20, 23};
-    expectedQsAlt = {9, 11, 22};
-    edges = {14, 16, 30, 35};
-    EXPECT_TRUE(lift[edges] == expectedQs || lift[edges] == expectedQsAlt);
-    expectedQs = {8, 22, 23};
-    expectedQsAlt = {9, 11, 20};
-    edges = {14, 16, 33, 34};
-    EXPECT_TRUE(lift[edges] == expectedQs || lift[edges] == expectedQsAlt);
-}
-
-TEST(buildLift, empty_lift_full_unencode)
-{
-    int L = 6;
-    auto vertexToQubits = buildVertexToFaces(L);
-    auto edgeToVertices = buildEdgeToVertices(L);
-    auto vertexToEdges = buildVertexToEdges(L);
-    auto logicals = buildLogicals(L);
-    sint unencodedVertices, qubitIndices;
-    auto edgeToFaces = buildEdgeToFaces(L);
-    vint qubits;
-    double p = 1.0;
-    unencode(vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, p, engine, dist);
-    auto faceToEdges = buildFaceToEdges(L);
-    auto lift = buildLift(L, vertexToQubits, unencodedVertices, vertexToEdges, qubitIndices, faceToEdges);
-    EXPECT_EQ(lift.size(), 0);
-}
-
 TEST(localLift, correct_L6)
 {
     int L = 6;
@@ -363,7 +156,7 @@ TEST(localLift, correct_L6)
     sint qubitIndices;
     for (int i = 0; i < 2 * L * L; ++i) qubitIndices.insert(i);
     auto faceToEdges = buildFaceToEdges(L);
-    auto lift = buildLift(L, vertexToQubits, unencodedVertices, vertexToEdges, qubitIndices, faceToEdges);
+    auto lift = buildLift(L, vertexToQubits, vertexToEdges, faceToEdges);
     int v = 11;
     vint paths = {0, 2, 33, 34};
     auto out = localLift(v, L, paths, vertexToEdges, lift);
@@ -402,11 +195,31 @@ TEST(pairExcitations, no_unencoding)
     int L = 6;
     auto edgeToVertices = buildEdgeToVertices(L);
     auto vertexToEdges = buildVertexToEdges(L);
+    graph_t gr = buildGraph(edgeToVertices, b, L);
+    std::map<vertex_descriptor, std::vector<vertex_descriptor>> excitationToPathsRG;
+    std::map<vertex_descriptor, vint> excitationToDistancesRG;
+    vint vertices(L * L);
+    std::iota (std::begin(vertices), std::end(vertices), 0); // Populate with 0, 1, ..., (L * L) - 1
+    vint verticesRG;
+    for (auto const v : vertices)
+    {
+        if (vertexColor(v, L) != b) verticesRG.push_back(v);
+    }
+    shortestPaths(gr, excitationToPathsRG, excitationToDistancesRG, verticesRG);
+    gr = buildGraph(edgeToVertices, g, L);
+    std::map<vertex_descriptor, std::vector<vertex_descriptor>> excitationToPathsRB;
+    std::map<vertex_descriptor, vint> excitationToDistancesRB;
+    vint verticesRB;
+    for (auto const v : vertices)
+    {
+        if (vertexColor(v, L) != g) verticesRB.push_back(v);
+    }
+    shortestPaths(gr, excitationToPathsRB, excitationToDistancesRB, verticesRB);
     vint paths, redVertices;
     // r-r
     vint excitations = {16, 26};
     color c = b; 
-    pairExcitations(excitations, edgeToVertices, vertexToEdges, c, L, paths, redVertices);
+    pairExcitations(excitations, edgeToVertices, vertexToEdges, c, L, paths, redVertices, excitationToPathsRG, excitationToDistancesRG);
     std::sort(paths.begin(), paths.end());
     vint expectedPath = {49, 63, 64, 78};
     EXPECT_EQ(paths, expectedPath);
@@ -415,7 +228,7 @@ TEST(pairExcitations, no_unencoding)
     c = g;
     paths = {};
     redVertices = {};
-    pairExcitations(excitations, edgeToVertices, vertexToEdges, c, L, paths, redVertices);
+    pairExcitations(excitations, edgeToVertices, vertexToEdges, c, L, paths, redVertices, excitationToPathsRB, excitationToDistancesRB);
     std::sort(paths.begin(), paths.end());
     expectedPath = {50, 56, 69, 75};
     EXPECT_EQ(paths, expectedPath);
@@ -426,7 +239,7 @@ TEST(pairExcitations, no_unencoding)
     c = b;
     paths = {};
     redVertices = {};
-    pairExcitations(excitations, edgeToVertices, vertexToEdges, c, L, paths, redVertices);
+    pairExcitations(excitations, edgeToVertices, vertexToEdges, c, L, paths, redVertices, excitationToPathsRG, excitationToDistancesRG);
     std::sort(paths.begin(), paths.end());
     expectedPath = {9, 10};
     EXPECT_EQ(paths, expectedPath);
@@ -435,7 +248,7 @@ TEST(pairExcitations, no_unencoding)
     c = g;
     paths = {};
     redVertices = {};
-    pairExcitations(excitations, edgeToVertices, vertexToEdges, c, L, paths, redVertices);
+    pairExcitations(excitations, edgeToVertices, vertexToEdges, c, L, paths, redVertices, excitationToPathsRB, excitationToDistancesRB);
     std::sort(paths.begin(), paths.end());
     expectedPath = {7, 21};
     EXPECT_EQ(paths, expectedPath);
@@ -446,7 +259,7 @@ TEST(pairExcitations, no_unencoding)
     c = b;
     paths = {};
     redVertices = {};
-    pairExcitations(excitations, edgeToVertices, vertexToEdges, c, L, paths, redVertices);
+    pairExcitations(excitations, edgeToVertices, vertexToEdges, c, L, paths, redVertices, excitationToPathsRG, excitationToDistancesRG);
     std::sort(paths.begin(), paths.end());
     expectedPath = {74};
     EXPECT_EQ(paths, expectedPath);
@@ -455,7 +268,7 @@ TEST(pairExcitations, no_unencoding)
     c = g;
     paths = {};
     redVertices = {};
-    pairExcitations(excitations, edgeToVertices, vertexToEdges, c, L, paths, redVertices);
+    pairExcitations(excitations, edgeToVertices, vertexToEdges, c, L, paths, redVertices, excitationToPathsRB, excitationToDistancesRB);
     std::sort(paths.begin(), paths.end());
     expectedPath = {90};
     EXPECT_EQ(paths, expectedPath);
@@ -474,12 +287,34 @@ TEST(pairExcitations, fully_unencoded)
     auto edgeToFaces = buildEdgeToFaces(L);
     vint qubits;
     double p = 1.0;
-    unencode(vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, p, engine, dist);
+    auto faceToEdges = buildFaceToEdges(L);
+    auto lift = buildLift(L, vertexToQubits, vertexToEdges, faceToEdges);
+    unencode(vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, p, engine, dist, false, true, lift);
+    graph_t gr = buildGraph(edgeToVertices, b, L);
+    std::map<vertex_descriptor, std::vector<vertex_descriptor>> excitationToPathsRG;
+    std::map<vertex_descriptor, vint> excitationToDistancesRG;
+    vint vertices(L * L);
+    std::iota (std::begin(vertices), std::end(vertices), 0); // Populate with 0, 1, ..., (L * L) - 1
+    vint verticesRG;
+    for (auto const v : vertices)
+    {
+        if (vertexColor(v, L) != b) verticesRG.push_back(v);
+    }
+    shortestPaths(gr, excitationToPathsRG, excitationToDistancesRG, verticesRG);
+    gr = buildGraph(edgeToVertices, g, L);
+    std::map<vertex_descriptor, std::vector<vertex_descriptor>> excitationToPathsRB;
+    std::map<vertex_descriptor, vint> excitationToDistancesRB;
+    vint verticesRB;
+    for (auto const v : vertices)
+    {
+        if (vertexColor(v, L) != g) verticesRB.push_back(v);
+    }
+    shortestPaths(gr, excitationToPathsRB, excitationToDistancesRB, verticesRB);
     // b-b & g-g
     vint excitations = {25, 33, 14, 22};
     vint paths, redVertices;
     color c = b; 
-    pairExcitations(excitations, edgeToVertices, vertexToEdges, c, L, paths, redVertices);
+    pairExcitations(excitations, edgeToVertices, vertexToEdges, c, L, paths, redVertices, excitationToPathsRG, excitationToDistancesRG);
     std::sort(paths.begin(), paths.end());
     vint expectedPath = {136};
     EXPECT_EQ(paths, expectedPath);
@@ -487,7 +322,7 @@ TEST(pairExcitations, fully_unencoded)
     c = g;
     paths = {};
     redVertices = {};
-    pairExcitations(excitations, edgeToVertices, vertexToEdges, c, L, paths, redVertices);
+    pairExcitations(excitations, edgeToVertices, vertexToEdges, c, L, paths, redVertices, excitationToPathsRB, excitationToDistancesRB);
     std::sort(paths.begin(), paths.end());
     expectedPath = {143};
     EXPECT_EQ(paths, expectedPath);
@@ -503,25 +338,43 @@ TEST(findCorrection, no_unencoding)
     sint unencodedVertices, qubitIndices;
     for (int i = 0; i < 2 * L * L; ++i) qubitIndices.insert(i);
     auto faceToEdges = buildFaceToEdges(L);
-    auto lift = buildLift(L, vertexToQubits, unencodedVertices, vertexToEdges, qubitIndices, faceToEdges);
+    auto lift = buildLift(L, vertexToQubits, vertexToEdges, faceToEdges);
+    graph_t gr = buildGraph(edgeToVertices, b, L);
+    std::map<vertex_descriptor, std::vector<vertex_descriptor>> excitationToPathsRG;
+    std::map<vertex_descriptor, vint> excitationToDistancesRG;
+    vint vertices(L * L);
+    std::iota (std::begin(vertices), std::end(vertices), 0); // Populate with 0, 1, ..., (L * L) - 1
+    vint verticesRG;
+    for (auto const v : vertices)
+    {
+        if (vertexColor(v, L) != b) verticesRG.push_back(v);
+    }
+    shortestPaths(gr, excitationToPathsRG, excitationToDistancesRG, verticesRG);
+    gr = buildGraph(edgeToVertices, g, L);
+    std::map<vertex_descriptor, std::vector<vertex_descriptor>> excitationToPathsRB;
+    std::map<vertex_descriptor, vint> excitationToDistancesRB;
+    vint verticesRB;
+    for (auto const v : vertices)
+    {
+        if (vertexColor(v, L) != g) verticesRB.push_back(v);
+    }
+    shortestPaths(gr, excitationToPathsRB, excitationToDistancesRB, verticesRB);
 
     // one qubit error
     vint excitations = {24, 30, 31};
-    auto outCorr = findCorrection(excitations, edgeToVertices, vertexToEdges, L, lift);
-    vint expectedCorr = {49};
+    auto outCorr = findCorrection(excitations, edgeToVertices, vertexToEdges, L, lift, unencodedVertices, excitationToPathsRG, excitationToDistancesRG, excitationToPathsRB, excitationToDistancesRB);
+    sint expectedCorr = {49};
     EXPECT_EQ(outCorr, expectedCorr);
 
     // 2x two qubit errors 
     excitations = {2, 7, 4, 9};
-    outCorr = findCorrection(excitations, edgeToVertices, vertexToEdges, L, lift);
-    std::sort(outCorr.begin(), outCorr.end());
+    outCorr = findCorrection(excitations, edgeToVertices, vertexToEdges, L, lift, unencodedVertices, excitationToPathsRG, excitationToDistancesRG, excitationToPathsRB, excitationToDistancesRB);
     expectedCorr = {2, 3, 6, 7};
     EXPECT_EQ(outCorr, expectedCorr);
 
     // multi-qubit error
     excitations = {16, 26};
-    outCorr = findCorrection(excitations, edgeToVertices, vertexToEdges, L, lift);
-    std::sort(outCorr.begin(), outCorr.end());
+    outCorr = findCorrection(excitations, edgeToVertices, vertexToEdges, L, lift, unencodedVertices, excitationToPathsRG, excitationToDistancesRG, excitationToPathsRB, excitationToDistancesRB);
     expectedCorr = {33, 37, 38, 39, 41, 42, 43, 46};
     EXPECT_EQ(outCorr, expectedCorr);
 }
@@ -537,15 +390,34 @@ TEST(findCorrection, full_unencode)
     auto edgeToFaces = buildEdgeToFaces(L);
     vint qubits;
     double p = 1.0;
-    unencode(vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, p, engine, dist);
     auto faceToEdges = buildFaceToEdges(L);
-    auto lift = buildLift(L, vertexToQubits, unencodedVertices, vertexToEdges, qubitIndices, faceToEdges);
+    auto lift = buildLift(L, vertexToQubits, vertexToEdges, faceToEdges);
+    unencode(vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, p, engine, dist, false, true, lift);
+    graph_t gr = buildGraph(edgeToVertices, b, L);
+    std::map<vertex_descriptor, std::vector<vertex_descriptor>> excitationToPathsRG;
+    std::map<vertex_descriptor, vint> excitationToDistancesRG;
+    vint vertices(L * L);
+    std::iota (std::begin(vertices), std::end(vertices), 0); // Populate with 0, 1, ..., (L * L) - 1
+    vint verticesRG;
+    for (auto const v : vertices)
+    {
+        if (vertexColor(v, L) != b) verticesRG.push_back(v);
+    }
+    shortestPaths(gr, excitationToPathsRG, excitationToDistancesRG, verticesRG);
+    gr = buildGraph(edgeToVertices, g, L);
+    std::map<vertex_descriptor, std::vector<vertex_descriptor>> excitationToPathsRB;
+    std::map<vertex_descriptor, vint> excitationToDistancesRB;
+    vint verticesRB;
+    for (auto const v : vertices)
+    {
+        if (vertexColor(v, L) != g) verticesRB.push_back(v);
+    }
+    shortestPaths(gr, excitationToPathsRB, excitationToDistancesRB, verticesRB);
 
     // 2x one qubit errors (b and g)
     vint excitations = {15, 23, 19, 32};
-    auto outCorr = findCorrection(excitations, edgeToVertices, vertexToEdges, L, lift);
-    std::sort(outCorr.begin(), outCorr.end());
-    vint expectedCorr = {131, 141};
+    auto outCorr = findCorrection(excitations, edgeToVertices, vertexToEdges, L, lift, unencodedVertices, excitationToPathsRG, excitationToDistancesRG, excitationToPathsRB, excitationToDistancesRB);
+    sint expectedCorr = {131, 141};
     EXPECT_EQ(outCorr, expectedCorr);
 }
 
@@ -612,7 +484,9 @@ TEST(checkCorrection, full_unencode)
     auto edgeToFaces = buildEdgeToFaces(L);
     vint qubits;
     double p = 1.0;
-    unencode(vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, p, engine, dist);
+    auto faceToEdges = buildFaceToEdges(L);
+    auto lift = buildLift(L, vertexToQubits, vertexToEdges, faceToEdges);
+    unencode(vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, p, engine, dist, false, true, lift);
     // Stabilizer error b
     int offset = 3 * L * L;
     qubits[offset + 30] = 1;
@@ -656,20 +530,83 @@ TEST(checkCorrection, full_unencode)
     EXPECT_FALSE(checkCommutation(qubits, logicals));
 }
 
-TEST(buildLift, L18_problem)
+TEST(reRoute, correct_L6)
 {
-    int L = 18;
+    // Initialization
+    int L = 6;
     auto vertexToQubits = buildVertexToFaces(L);
-    sint unencodedVertices;
+    auto edgeToVertices = buildEdgeToVertices(L);
     auto vertexToEdges = buildVertexToEdges(L);
-    sint qubitIndices;
-    for (int i = 0; i < 2 * L * L; ++i) qubitIndices.insert(i);
-    auto faceToEdges = buildFaceToEdges(L);
-    auto lift = buildLift(L, vertexToQubits, unencodedVertices, vertexToEdges, qubitIndices, faceToEdges);
+    auto logicals = buildLogicals(L);
+    sint unencodedVertices, qubitIndices;
+    auto edgeToFaces = buildEdgeToFaces(L);
+    vint qubits;
 
-    vint problemEdges = {41, 97};
-    EXPECT_NO_THROW(auto qs = lift.at(problemEdges));
-    auto qs = lift.at(problemEdges);
-    vint expectedQs = {27, 62};
-    EXPECT_EQ(qs, expectedQs);
+    // This is basically the unencoding function
+    for (int i = 0; i < 2 * L * L; ++i) qubitIndices.insert(i);
+    int e = 3 * L * L;
+    vint vertices = {20, 22}; // vertices to unencode in the test
+    for (auto const v : vertices)
+    {
+        auto neighV = ccNeighbors(v, L);
+        for (auto u : neighV)
+        {
+            // If a neighboring vertex has already been unencoded we can't unencode
+            if (unencodedVertices.find(u) != unencodedVertices.end()) continue; 
+        }
+        unencodedVertices.insert(v);
+        // qubitIndices
+        auto faces = vertexToQubits[v];
+        for (auto f : faces) qubitIndices.erase(f);
+        qubitIndices.insert(e);
+        qubitIndices.insert(e + 1);
+        qubitIndices.insert(e + 2);
+        qubitIndices.insert(e + 3);
+        // Specify unencoding locally 
+        vvint vertexToEdgesL;
+        vpint edgeToVerticesL;
+        vint localVertexMap;
+        std::map<std::pair<int, int>, std::vector<int>> logicalOperatorMapX;
+        std::map<std::pair<int, int>, std::vector<int>> logicalOperatorMapZ;
+        localUnencoding(vertexToEdgesL, edgeToVerticesL, localVertexMap, logicalOperatorMapX, logicalOperatorMapZ, v, L, engine, false); // Use default unencoding
+        // Modify data structures to account for unencoding
+        modifyVertexToQubits(vertexToQubits, vertexToEdgesL, localVertexMap, v, e, L);
+        modifyEdgeToVertices(edgeToVertices, edgeToVerticesL, v, L, localVertexMap);
+        modifyLogicalOperators(logicals, logicalOperatorMapX, e);
+        e += 4;
+    }
+    qubits.assign(e, 0); // Init qubits with length equal to final edge index + 1
+    vertexToEdges = buildVertexToEdges(edgeToVertices, L); // Use overloaded function to invert edgeToVertices
+
+    auto newPath = reRoute(13, 26, 20, b, L, vertexToEdges, edgeToVertices);
+    std::sort(newPath.begin(), newPath.end());
+    vvint expPaths = {{39, 78, 110}, {40, 78, 111}};
+    EXPECT_TRUE(newPath == expPaths[0] || newPath == expPaths[1]);
+    newPath = reRoute(26, 13, 20, b, L, vertexToEdges, edgeToVertices);
+    std::sort(newPath.begin(), newPath.end());
+    EXPECT_TRUE(newPath == expPaths[0] || newPath == expPaths[1]);
+
+    newPath = reRoute(21, 13, 20, b, L, vertexToEdges, edgeToVertices);
+    std::sort(newPath.begin(), newPath.end());
+    expPaths = {{39, 64, 110}, {40, 64, 111}};
+    EXPECT_TRUE(newPath == expPaths[0] || newPath == expPaths[1]);
+    newPath = reRoute(13, 21, 20, b, L, vertexToEdges, edgeToVertices);
+    std::sort(newPath.begin(), newPath.end());
+    EXPECT_TRUE(newPath == expPaths[0] || newPath == expPaths[1]);
+    
+    newPath = reRoute(16, 29, 22, g, L, vertexToEdges, edgeToVertices);
+    std::sort(newPath.begin(), newPath.end());
+    expPaths = {{45, 70, 112}, {45, 84, 113}};
+    EXPECT_TRUE(newPath == expPaths[0] || newPath == expPaths[1]);
+    newPath = reRoute(29, 16, 22, g, L, vertexToEdges, edgeToVertices);
+    std::sort(newPath.begin(), newPath.end());
+    EXPECT_TRUE(newPath == expPaths[0] || newPath == expPaths[1]);
+
+    newPath = reRoute(21, 29, 22, g, L, vertexToEdges, edgeToVertices);
+    std::sort(newPath.begin(), newPath.end());
+    expPaths = {{46, 70, 112}, {46, 84, 113}};
+    EXPECT_TRUE(newPath == expPaths[0] || newPath == expPaths[1]);
+    newPath = reRoute(29, 21, 22, g, L, vertexToEdges, edgeToVertices);
+    std::sort(newPath.begin(), newPath.end());
+    EXPECT_TRUE(newPath == expPaths[0] || newPath == expPaths[1]);
 }
