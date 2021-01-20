@@ -55,7 +55,9 @@ void pairExcitations(const vint &excitations, const vpint &edgeToVertices, const
         {
             edges.push_back(i);
             edges.push_back(j);
-            weights.push_back(excitationToDistances[restrictedExcitations[i]][restrictedExcitations[j]]);
+            int weight = excitationToDistances[restrictedExcitations[i]][restrictedExcitations[j]];
+            if (weight == INT_MAX) weight = L * L * L; // BlossomV behaves weirdly if you give it INT_MAX weights
+            weights.push_back(weight);
         }
     }
     int edgeNum = edges.size() / 2;
