@@ -338,7 +338,6 @@ TEST(findCorrection, no_unencoding)
     auto vertexToEdges = buildVertexToEdges(L);
     auto vertexToQubits = buildVertexToFaces(L);
     auto edgeToFaces = buildEdgeToFaces(L);
-    sint qubitIndices;
     sint unencodedVertices, qubitIndices;
     for (int i = 0; i < 2 * L * L; ++i) qubitIndices.insert(i);
     auto faceToEdges = buildFaceToEdges(L);

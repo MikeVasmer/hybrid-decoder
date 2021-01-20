@@ -488,11 +488,14 @@ vvint buildVertexToEdges(const vpint &edgeToVertices, int L)
 // Get rid of edges belonging to two qubits that have been unencoded
 void removeRedundantEdges(vpint &edgeToVertices, const sint &qubitIndices, const vpint &edgeToFaces, int L)
 {
-    for (int e = 0; e < 3 * L * L; ++e)
+    if (qubitIndices.size() > 0)
     {
-        auto faces = edgeToFaces[e];
-        if ((qubitIndices.find(faces.first) != qubitIndices.end()) || (qubitIndices.find(faces.second) != qubitIndices.end())) continue;
-        edgeToVertices[e] = {};
+        for (int e = 0; e < 3 * L * L; ++e)
+        {
+            auto faces = edgeToFaces[e];
+            if ((qubitIndices.find(faces.first) != qubitIndices.end()) || (qubitIndices.find(faces.second) != qubitIndices.end())) continue;
+            edgeToVertices[e] = {};
+        }
     }
 }
 
@@ -654,7 +657,7 @@ void unencode(vsint &vertexToQubits, vpint &edgeToVertices, sint &unencodedVerti
     if (!rOnly) std::random_shuffle(vertices.begin(), vertices.end()); 
     for (auto const v : vertices)
     {
-        if (rOnly && vertexColor(v, L) != g) continue;
+        if (rOnly && vertexColor(v, L) != r) continue;
         if (dist(engine) <= p)
         {
             if (neighborUnencoded(v, L, unencodedVertices)) continue;

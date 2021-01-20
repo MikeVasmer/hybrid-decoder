@@ -424,7 +424,8 @@ TEST(unencode, full_unencode)
         for (auto const &qs : vertexToQubits) EXPECT_EQ(qs.size(), 4);
         // edgeToVertices 
         EXPECT_EQ(edgeToVertices.size(), 3 * L * L + 4 * L * L / 3);
-        // WARNING: We only longer delete the 'redundant edges' for r-only unencoding
+        // WARNING: We now delete the redundant edges in buildGraph
+        removeRedundantEdges(edgeToVertices, qubitIndices, edgeToFaces, L);
         std::pair<int, int> defaultPair{0, 0};
         for (int e = 0; e < 3 * L * L; ++e) EXPECT_EQ(edgeToVertices[e], defaultPair); 
         // logicalOperators 
