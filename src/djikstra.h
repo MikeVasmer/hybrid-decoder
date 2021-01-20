@@ -17,7 +17,8 @@ typedef std::pair< int, int > Edge;
 typedef boost::graph_traits<graph_t>::vertex_iterator vertex_iter;
 typedef boost::property_map<graph_t, boost::vertex_index_t>::type IndexMap;
 
-graph_t buildGraph(const vpint &edgeToVertices, color c, int L);
+// graph_t buildGraph(const vpint &edgeToVertices, color c, int L);
+graph_t buildGraph(vpint edgeToVertices, color c, int L, const vpint &edgeToFaces, const sint &qubitIndices);
 
 void shortestPaths(const graph_t& g, std::map<vertex_descriptor, std::vector<vertex_descriptor>>& excitationToPaths, std::map<vertex_descriptor, vint>& excitationToDistances, const vint& excitations);
 

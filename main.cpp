@@ -60,7 +60,8 @@ int main(int argc, char* argv[])
     if (!(ss >> std::boolalpha >> randomizeUnencoding)) throw std::invalid_argument("Problem with randomizeUnencoding.");
     int trials = atoi(argv[5]);
     int job = atoi(argv[6]);
-    bool rOnly = false;
+    // bool rOnly = false;
+    bool rOnly = true;
 
     // Parameter checks
     if (L % 3 != 0 || L <= 0) throw std::invalid_argument("L must be a positive multiple of three.");
@@ -91,7 +92,7 @@ int main(int argc, char* argv[])
     vint qubits;
     unencode(vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, unencodingP, engine, dist, randomizeUnencoding, rOnly, lift);
     // Compute paths and distances
-    graph_t gr = buildGraph(edgeToVertices, b, L);
+    graph_t gr = buildGraph(edgeToVertices, b, L, edgeToFaces, qubitIndices);
     std::map<vertex_descriptor, std::vector<vertex_descriptor>> excitationToPathsRG;
     std::map<vertex_descriptor, vint> excitationToDistancesRG;
     vint vertices(L * L);
@@ -102,7 +103,7 @@ int main(int argc, char* argv[])
         if (vertexColor(v, L) != b) verticesRG.push_back(v);
     }
     shortestPaths(gr, excitationToPathsRG, excitationToDistancesRG, verticesRG);
-    gr = buildGraph(edgeToVertices, g, L);
+    gr = buildGraph(edgeToVertices, g, L, edgeToFaces, qubitIndices);
     std::map<vertex_descriptor, std::vector<vertex_descriptor>> excitationToPathsRB;
     std::map<vertex_descriptor, vint> excitationToDistancesRB;
     vint verticesRB;

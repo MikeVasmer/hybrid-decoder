@@ -654,7 +654,7 @@ void unencode(vsint &vertexToQubits, vpint &edgeToVertices, sint &unencodedVerti
     if (!rOnly) std::random_shuffle(vertices.begin(), vertices.end()); 
     for (auto const v : vertices)
     {
-        if (rOnly && vertexColor(v, L) != r) continue;
+        if (rOnly && vertexColor(v, L) != g) continue;
         if (dist(engine) <= p)
         {
             if (neighborUnencoded(v, L, unencodedVertices)) continue;
@@ -681,7 +681,7 @@ void unencode(vsint &vertexToQubits, vpint &edgeToVertices, sint &unencodedVerti
             e += 4;
         }
     }
-    if (rOnly) removeRedundantEdges(edgeToVertices, qubitIndices, edgeToFaces, L); // We need these edges in re-routing
+    // if (rOnly) removeRedundantEdges(edgeToVertices, qubitIndices, edgeToFaces, L); // We need these edges in re-routing
     qubits.assign(e, 0); // Init qubits with length equal to final edge index + 1
     vertexToEdges = buildVertexToEdges(edgeToVertices, L); // Use overloaded function to invert edgeToVertices
 }

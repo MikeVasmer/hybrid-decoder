@@ -195,7 +195,9 @@ TEST(pairExcitations, no_unencoding)
     int L = 6;
     auto edgeToVertices = buildEdgeToVertices(L);
     auto vertexToEdges = buildVertexToEdges(L);
-    graph_t gr = buildGraph(edgeToVertices, b, L);
+    auto edgeToFaces = buildEdgeToFaces(L);
+    sint qubitIndices;
+    graph_t gr = buildGraph(edgeToVertices, b, L, edgeToFaces, qubitIndices);
     std::map<vertex_descriptor, std::vector<vertex_descriptor>> excitationToPathsRG;
     std::map<vertex_descriptor, vint> excitationToDistancesRG;
     vint vertices(L * L);
@@ -206,7 +208,7 @@ TEST(pairExcitations, no_unencoding)
         if (vertexColor(v, L) != b) verticesRG.push_back(v);
     }
     shortestPaths(gr, excitationToPathsRG, excitationToDistancesRG, verticesRG);
-    gr = buildGraph(edgeToVertices, g, L);
+    gr = buildGraph(edgeToVertices, g, L, edgeToFaces, qubitIndices);
     std::map<vertex_descriptor, std::vector<vertex_descriptor>> excitationToPathsRB;
     std::map<vertex_descriptor, vint> excitationToDistancesRB;
     vint verticesRB;
@@ -290,7 +292,7 @@ TEST(pairExcitations, fully_unencoded)
     auto faceToEdges = buildFaceToEdges(L);
     auto lift = buildLift(L, vertexToQubits, vertexToEdges, faceToEdges);
     unencode(vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, p, engine, dist, false, true, lift);
-    graph_t gr = buildGraph(edgeToVertices, b, L);
+    graph_t gr = buildGraph(edgeToVertices, b, L, edgeToFaces, qubitIndices);
     std::map<vertex_descriptor, std::vector<vertex_descriptor>> excitationToPathsRG;
     std::map<vertex_descriptor, vint> excitationToDistancesRG;
     vint vertices(L * L);
@@ -301,7 +303,7 @@ TEST(pairExcitations, fully_unencoded)
         if (vertexColor(v, L) != b) verticesRG.push_back(v);
     }
     shortestPaths(gr, excitationToPathsRG, excitationToDistancesRG, verticesRG);
-    gr = buildGraph(edgeToVertices, g, L);
+    gr = buildGraph(edgeToVertices, g, L, edgeToFaces, qubitIndices);
     std::map<vertex_descriptor, std::vector<vertex_descriptor>> excitationToPathsRB;
     std::map<vertex_descriptor, vint> excitationToDistancesRB;
     vint verticesRB;
@@ -335,11 +337,13 @@ TEST(findCorrection, no_unencoding)
     auto edgeToVertices = buildEdgeToVertices(L);
     auto vertexToEdges = buildVertexToEdges(L);
     auto vertexToQubits = buildVertexToFaces(L);
+    auto edgeToFaces = buildEdgeToFaces(L);
+    sint qubitIndices;
     sint unencodedVertices, qubitIndices;
     for (int i = 0; i < 2 * L * L; ++i) qubitIndices.insert(i);
     auto faceToEdges = buildFaceToEdges(L);
     auto lift = buildLift(L, vertexToQubits, vertexToEdges, faceToEdges);
-    graph_t gr = buildGraph(edgeToVertices, b, L);
+    graph_t gr = buildGraph(edgeToVertices, b, L, edgeToFaces, qubitIndices);
     std::map<vertex_descriptor, std::vector<vertex_descriptor>> excitationToPathsRG;
     std::map<vertex_descriptor, vint> excitationToDistancesRG;
     vint vertices(L * L);
@@ -350,7 +354,7 @@ TEST(findCorrection, no_unencoding)
         if (vertexColor(v, L) != b) verticesRG.push_back(v);
     }
     shortestPaths(gr, excitationToPathsRG, excitationToDistancesRG, verticesRG);
-    gr = buildGraph(edgeToVertices, g, L);
+    gr = buildGraph(edgeToVertices, g, L, edgeToFaces, qubitIndices);
     std::map<vertex_descriptor, std::vector<vertex_descriptor>> excitationToPathsRB;
     std::map<vertex_descriptor, vint> excitationToDistancesRB;
     vint verticesRB;
@@ -393,7 +397,7 @@ TEST(findCorrection, full_unencode)
     auto faceToEdges = buildFaceToEdges(L);
     auto lift = buildLift(L, vertexToQubits, vertexToEdges, faceToEdges);
     unencode(vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, p, engine, dist, false, true, lift);
-    graph_t gr = buildGraph(edgeToVertices, b, L);
+    graph_t gr = buildGraph(edgeToVertices, b, L, edgeToFaces, qubitIndices);
     std::map<vertex_descriptor, std::vector<vertex_descriptor>> excitationToPathsRG;
     std::map<vertex_descriptor, vint> excitationToDistancesRG;
     vint vertices(L * L);
@@ -404,7 +408,7 @@ TEST(findCorrection, full_unencode)
         if (vertexColor(v, L) != b) verticesRG.push_back(v);
     }
     shortestPaths(gr, excitationToPathsRG, excitationToDistancesRG, verticesRG);
-    gr = buildGraph(edgeToVertices, g, L);
+    gr = buildGraph(edgeToVertices, g, L, edgeToFaces, qubitIndices);
     std::map<vertex_descriptor, std::vector<vertex_descriptor>> excitationToPathsRB;
     std::map<vertex_descriptor, vint> excitationToDistancesRB;
     vint verticesRB;

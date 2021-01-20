@@ -11,7 +11,9 @@ TEST(buildGraph, no_unencoding)
         for (auto c : colors)
         {
             auto edgeToVertices = buildEdgeToVertices(L);
-            auto g = buildGraph(edgeToVertices, c, L);
+            auto edgeToFaces = buildEdgeToFaces(L);
+            sint qubitIndices;
+            auto g = buildGraph(edgeToVertices, c, L, edgeToFaces, qubitIndices);
             EXPECT_EQ(num_vertices(g), L * L);
             EXPECT_EQ(num_edges(g), L * L);
             for (int v = 0; v < L * L; ++v)
@@ -80,7 +82,7 @@ TEST(buildGraph, full_unencoding)
         unencode(vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, p, engine, dist, false, true, lift);
         for (auto c : colors)
         {
-            auto g = buildGraph(edgeToVertices, c, L);
+            auto g = buildGraph(edgeToVertices, c, L, edgeToFaces, qubitIndices);
             EXPECT_EQ(num_vertices(g), L * L);
             EXPECT_EQ(num_edges(g), 2 * L * L / 3); // Half of new edges
             for (int v = 0; v < L * L; ++v) // Check no CC edges present
@@ -112,7 +114,9 @@ TEST(shortestPaths, no_unencoding)
     int L = 6;
     color c = g; // rb restricted lattice
     auto edgeToVertices = buildEdgeToVertices(L);
-    auto g = buildGraph(edgeToVertices, c, L);
+    auto edgeToFaces = buildEdgeToFaces(L);
+    sint qubitIndices;
+    auto g = buildGraph(edgeToVertices, c, L, edgeToFaces, qubitIndices);
     std::map<vertex_descriptor, std::vector<vertex_descriptor>> excitationToPaths;
     std::map<vertex_descriptor, vint> excitationToDistances;
     vint excitations = {0};
@@ -173,7 +177,7 @@ TEST(shortestPaths, full_unencoding)
     auto faceToEdges = buildFaceToEdges(L);
     auto lift = buildLift(L, vertexToQubits, vertexToEdges, faceToEdges);
     unencode(vertexToQubits, edgeToVertices, unencodedVertices, qubitIndices, qubits, logicals, edgeToFaces, vertexToEdges, L, p, engine, dist, false, true, lift);
-    auto g = buildGraph(edgeToVertices, c, L);
+    auto g = buildGraph(edgeToVertices, c, L, edgeToFaces, qubitIndices);
     std::map<vertex_descriptor, std::vector<vertex_descriptor>> excitationToPaths;
     std::map<vertex_descriptor, vint> excitationToDistances;
     vint excitations = {14};

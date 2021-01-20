@@ -1,11 +1,15 @@
 #include "djikstra.h"
 #include "hexLattice.h"
 
-// c is the color of vertices NOT to include
-graph_t buildGraph(const vpint &edgeToVertices, color c, int L)
+// c is the color of vertices NOT to include, edgeToVertices deliberately passed by value
+graph_t buildGraph(vpint edgeToVertices, color c, int L, const vpint &edgeToFaces, const sint &qubitIndices)
 {
     int numEdges = 0;
     int numNodes = L * L;
+
+    // We want to remove the redundant edges in the matching graph but not permanently as we may need them in re-routing
+    removeRedundantEdges(edgeToVertices, qubitIndices, edgeToFaces, L);
+
     for (auto p : edgeToVertices) // Count number of edges
     {
         if (p.first == 0 && p.second == 0) continue; // Edge deleted during unencoding
