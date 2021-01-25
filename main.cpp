@@ -60,8 +60,8 @@ int main(int argc, char* argv[])
     if (!(ss >> std::boolalpha >> randomizeUnencoding)) throw std::invalid_argument("Problem with randomizeUnencoding.");
     int trials = atoi(argv[5]);
     int job = atoi(argv[6]);
-    // bool rOnly = false;
-    bool rOnly = true;
+    bool rOnly = false;
+    // bool rOnly = true;
 
     // Parameter checks
     if (L % 3 != 0 || L <= 0) throw std::invalid_argument("L must be a positive multiple of three.");
