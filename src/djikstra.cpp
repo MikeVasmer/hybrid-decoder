@@ -8,7 +8,7 @@ graph_t buildGraph(vpint edgeToVertices, color c, int L, const vpint &edgeToFace
     int numNodes = L * L;
 
     // We want to remove the redundant edges in the matching graph but not permanently as we may need them in re-routing
-    removeRedundantEdges(edgeToVertices, qubitIndices, edgeToFaces, L);
+    // removeRedundantEdges(edgeToVertices, qubitIndices, edgeToFaces, L);
 
     for (auto p : edgeToVertices) // Count number of edges
     {
