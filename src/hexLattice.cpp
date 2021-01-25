@@ -654,8 +654,16 @@ void unencode(vsint &vertexToQubits, vpint &edgeToVertices, sint &unencodedVerti
     // Unencoding one vertex means its neighbors can't be unencoded (not an issue for r-only)
     // So to make our unencoding random we visit the vertices in random order 
     std::iota (std::begin(vertices), std::end(vertices), 0); // Populate with 0, 1, ..., (L * L) - 1
-    if (!rOnly) std::random_shuffle(vertices.begin(), vertices.end()); 
-    for (auto const v : vertices)
+    // if (!rOnly) std::random_shuffle(vertices.begin(), vertices.end()); 
+    vint sortedVertices;
+    if (!rOnly)
+    {
+        for (auto v : vertices) if (vertexColor(v, L) == r) sortedVertices.push_back(v);
+        for (auto v : vertices) if (vertexColor(v, L) == g) sortedVertices.push_back(v);
+        for (auto v : vertices) if (vertexColor(v, L) == b) sortedVertices.push_back(v);
+    }
+    // for (auto const v : vertices)
+    for (auto const v : sortedVertices)
     {
         if (rOnly && vertexColor(v, L) != r) continue;
         if (dist(engine) <= p)
