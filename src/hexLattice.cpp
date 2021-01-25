@@ -662,6 +662,7 @@ void unencode(vsint &vertexToQubits, vpint &edgeToVertices, sint &unencodedVerti
         for (auto v : vertices) if (vertexColor(v, L) == g) sortedVertices.push_back(v);
         for (auto v : vertices) if (vertexColor(v, L) == b) sortedVertices.push_back(v);
     }
+    else sortedVertices = vertices;
     // for (auto const v : vertices)
     for (auto const v : sortedVertices)
     {
