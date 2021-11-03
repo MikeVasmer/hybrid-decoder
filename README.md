@@ -31,4 +31,4 @@ To only morph red ball-like regions, set `rOnly` to `true` in `main.cpp`
 
 ## Software
 
-This code makes use of [Blossom V](http://pub.ist.ac.at/~vnk/software.html)
+This code makes use of [Blossom V](http://pub.ist.ac.at/~vnk/software.html) and [Boost](https://www.boost.org/)
