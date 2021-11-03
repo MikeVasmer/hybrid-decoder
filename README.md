@@ -26,8 +26,8 @@ To only morph red ball-like regions, set `rOnly` to `true` in `main.cpp`
 
 - `cd build`
 - `cmake ../ -DCMAKE_BUILD_TYPE=Debug`
-- make
-- make test
+- `make`
+- `make test`
 
 ## Software
 
