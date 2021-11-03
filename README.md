@@ -1,6 +1,6 @@
 # Decoder for hybrid toric-color (HTC) codes
 
-Implementation of the decoding algorithm found in [arXiv:2011.xxxx](https://arxiv.org).
+Implementation of the decoding algorithm found in [arXiv:2011.xxxx](https://arxiv.org)
 
 ## Usage
 
@@ -15,3 +15,7 @@ Implementation of the decoding algorithm found in [arXiv:2011.xxxx](https://arxi
 ## Notes
 
 To only morph red ball-like regions, set `rOnly` to `true` in `main.cpp`
+
+## Software
+
+This code makes use of [Blossom V](http://pub.ist.ac.at/~vnk/software.html)
