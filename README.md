@@ -2,6 +2,12 @@
 
 Implementation of the decoding algorithm found in [arXiv:2011.xxxx](https://arxiv.org)
 
+## Build
+
+- `mkdir build && cd build`
+- `cmake ../ -DCMAKE_BUILD_TYPE=Release`
+- `make`
+
 ## Usage
 
 - Use `gen_input.py` in input to generate a parameter file
@@ -15,6 +21,13 @@ Implementation of the decoding algorithm found in [arXiv:2011.xxxx](https://arxi
 ## Notes
 
 To only morph red ball-like regions, set `rOnly` to `true` in `main.cpp`
+
+## Tests
+
+- `cd build`
+- `cmake ../ -DCMAKE_BUILD_TYPE=Debug`
+- make
+- make test
 
 ## Software
 
