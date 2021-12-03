@@ -1,6 +1,6 @@
 # Decoder for hybrid color-toric codes
 
-Implementation of the decoding algorithm for two-dimensional hybrid color-toric codes described in [arXiv:2011.xxxx](https://arxiv.org)
+Implementation of the decoding algorithm for two-dimensional hybrid color-toric codes described in [arXiv:2112.01446](http://arxiv.org/abs/2112.01446)
 
 ## Build
 
